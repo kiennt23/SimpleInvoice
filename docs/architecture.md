@@ -41,17 +41,17 @@ Within each module:
 - **Controllers** own HTTP concerns only: routing, status codes, Swagger metadata. No business logic.
 - **DTOs and the global `ValidationPipe`** own request validation. DTOs use `class-validator` and `class-transformer` per API-001. DTOs may implement interfaces from `packages/contracts` while remaining classes.
 - **Services** orchestrate use cases and transactions. They call domain functions and Prisma directly.
-- **Domain functions** are pure functions that own all calculations, date rules, and status rules. They take plain inputs, including the request's business date, and return plain outputs. They have no Prisma, Nest, or HTTP dependencies, which is what makes them unit-testable under TDD.
+- **Domain functions** are pure functions that own all calculations, date rules, and status rules. They may use `Prisma.Decimal` as a pure value type but have no `PrismaClient`, database, Nest, or HTTP dependencies, which is what makes them unit-testable under TDD; decimal values cross the HTTP edge as contract-defined strings.
 - **Persistence** is written directly against the Prisma client. There is no generic repository abstraction or data-access interface layer. If a persistence boundary is needed, it is a concrete, specific one, such as the overdue-aware query module described below.
 
 ### The Overdue Query Boundary
 
-Derived `Overdue` status and list predicates need parameterized SQL that Prisma's query builder cannot express cleanly. Exactly one concrete persistence boundary wraps that SQL. It must apply effective-status predicates before counting, before sorting, and before pagination, and the count query and rows query must share equivalent predicates with a deterministic ID tie-breaker on sort. Details of the behavior are normative in [requirements](requirements.md); this document only fixes the boundary's shape: one place, parameterized SQL, no generic repository.
+Derived `Overdue` status and list predicates need parameterized SQL that Prisma's query builder cannot express cleanly. Exactly one concrete persistence boundary wraps that SQL. It must apply effective-status predicates before counting, before sorting, and before pagination, and the count query and rows query must share equivalent predicates with the deterministic tie-breaker required by LIST-009 and DATA-008. Behavior is normative in [requirements](requirements.md); this document only fixes the boundary's shape: one place, parameterized SQL, no generic repository.
 
 ### Snapshot and Cardinality Rules
 
-- Customer data on an invoice is an immutable snapshot copied at creation time. It is never joined live from a customers table.
-- The invoice-to-items relation is one-to-many in the schema. The create DTO enforces exactly one item for the assessment flow, per CREATE-002.
+- Customer data on an invoice is an immutable snapshot copied at creation time, as required by DATA-007. It is never joined live from a customers table.
+- The invoice-to-items relation is one-to-many in the schema. The create DTO enforces exactly one item for the assessment flow, per CREATE-002, and the API persists both in one transaction per CREATE-012.
 
 ## Shared Contracts Package
 
@@ -73,7 +73,7 @@ State ownership:
 - **TanStack Query** owns all server state: caching, refetching, and loading/error representation.
 - **Form state** stays local to React Hook Form and never enters a global store.
 
-The fetch client uses relative URLs so requests stay same-origin and ride the proxy. Zod schemas parse API responses and form input as client-side feedback only; the backend validation described in [requirements](requirements.md) remains authoritative. On a 401 from a protected route, the router redirects to login.
+The fetch client uses relative URLs so requests stay same-origin and ride the proxy. Zod schemas parse API responses and form input as client-side feedback only; the backend validation described in [requirements](requirements.md) remains authoritative. When a protected-route request receives the eventual unauthenticated contract's response, the router redirects to login.
 
 ## Data and Persistence
 
@@ -81,7 +81,7 @@ The fetch client uses relative URLs so requests stay same-origin and ride the pr
 - Prisma 7 with Prisma Migrate; every schema change ships as a committed migration. Migration practice is owned by the [Development Workflow](development-workflow.md).
 - Invoice date and due date are PostgreSQL `DATE` columns, never timestamps ([ADR 0004](adr/0004-use-business-date-semantics.md)).
 - Monetary and percentage columns are PostgreSQL `NUMERIC` with the scales fixed in [requirements](requirements.md): `rate NUMERIC(19,4)`, `taxPercent NUMERIC(5,2)`, and all money amounts `NUMERIC(19,2)`. Application code uses `Prisma.Decimal` exclusively for decimal arithmetic ([ADR 0003](adr/0003-use-exact-decimal-money.md)).
-- Creating an invoice and its line item is one atomic transaction.
+- Creating an invoice and its line item is one atomic transaction per CREATE-012.
 
 ## Authentication Topology
 

@@ -60,6 +60,7 @@ Status transitions, payment collection, customer management, and external third-
 - **LIST-006:** Pagination must be performed by the server with a configurable page size.
 - **LIST-007:** Date filtering must support `fromDate` and `toDate`.
 - **LIST-008:** Filtering by derived `Overdue` status must occur before pagination totals and page contents are calculated.
+- **LIST-009:** Equal sort keys must produce a stable page order across requests.
 
 ### List API
 
@@ -121,6 +122,8 @@ The following list-query details remain open decisions (see Open Product Decisio
 - **CREATE-009:** Required customer, invoice, date, currency, and item fields must be validated by both the relevant client form and the API boundary.
 - **CREATE-010:** The backend must calculate all authoritative totals.
 - **CREATE-011:** After successful creation, the frontend must show a success notification and redirect the user specifically to the Invoice List.
+- **CREATE-012:** The API must create the invoice and its line item in one atomic transaction.
+- **CREATE-013:** Quantity must fit a documented bounded integer range sufficient for calculation and storage; the exact bound is decided with the other creation contracts.
 
 ### Creation Field Rules
 
@@ -155,10 +158,11 @@ balanceAmount = totalAmount - totalPaid
 
 - **MONEY-001:** The frontend must not provide authoritative calculated values to be persisted.
 - **MONEY-002:** Monetary values must not be persisted using binary floating-point types.
-- **MONEY-003:** All monetary and percentage arithmetic uses exact decimals (`Prisma.Decimal`, never JavaScript `number`), with HALF_UP rounding to 2 decimal places at the boundaries defined in [ADR 0003](adr/0003-use-exact-decimal-money.md): subtotal is rounded first, tax is computed from the rounded subtotal, and total and balance are materialized at 2 decimal places.
+- **MONEY-003:** All monetary and percentage arithmetic uses exact decimals (`Prisma.Decimal` as a pure value type, never JavaScript `number`), with HALF_UP rounding to 2 decimal places at the boundaries defined in [ADR 0003](adr/0003-use-exact-decimal-money.md): subtotal is rounded first, tax is computed from the rounded subtotal, and total and balance are materialized at 2 decimal places.
 - **MONEY-004:** Supported currencies are initially AUD, USD, and GBP, each with 2 minor-unit decimals; the canonical registry (code and minor units) lives in `packages/contracts` and is extended per the [currency SOP](sops/adding-a-currency.md). New invoices persist `totalPaid = 0.00`. Discount has no approved upper bound. Currency-symbol display behavior remains open.
-- **MONEY-005:** Monetary and percentage request fields are decimal strings; every decimal response field is a decimal string; `quantity` remains an integer.
+- **MONEY-005:** Monetary and percentage request fields are decimal strings in canonical syntax (no exponent or whitespace); every decimal response field is a decimal string; `quantity` remains an integer.
 - **MONEY-006:** Persisted monetary and percentage columns use PostgreSQL `NUMERIC` with the scales in DATA-003.
+- **MONEY-007:** Decimal inputs exceeding a field's approved scale must be rejected with HTTP 400 before calculation; values are never silently rounded by storage. Quantity is a positive integer within a documented bounded range, decided with the other creation contracts.
 
 ## Status Rules
 
@@ -195,6 +199,8 @@ Appendix A includes a sample persisted `Overdue` value. It must not be copied be
 - **DATA-004:** A seed command must be available as `npm run seed`.
 - **DATA-005:** Seed data must use Appendix A's records as the structural and relationship foundation, adapted wherever Appendix A conflicts with a normative rule, and add approximately 20-50 additional varied invoices so the dataset demonstrates search, status filtering, sorting, and pagination.
 - **DATA-006:** Seeds may persist only `Draft`, `Pending`, and `Paid`; past due dates should demonstrate derived `Overdue` behavior. No seed record may carry a persisted `Overdue` status.
+- **DATA-007:** Customer details are persisted as an immutable snapshot on the invoice, copied at creation time and never joined from a separate customer record at read time.
+- **DATA-008:** All list sorting appends a deterministic identifier tie-breaker so pagination remains stable for equal sort keys.
 
 ## Testing Requirements
 
@@ -224,6 +230,10 @@ These decisions must be resolved before the affected implementation begins:
 
 - Currency-symbol display behavior
 - Whether discount may exceed subtotal plus tax
+- Pagination defaults and maximum page size
+- List-query coercion versus rejection policy
+- Origin-check rejection status and error contract
+- Behavior when a requested page lies beyond the final page
 - Login success and invalid-credential response schemas and status codes
 - `/auth/me` response schema and status codes
 - Invoice-list row schema and list response status codes

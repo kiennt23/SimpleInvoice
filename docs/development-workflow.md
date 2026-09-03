@@ -127,7 +127,7 @@ Tests should assert externally meaningful behavior rather than private implement
 
 - Frontend unit tests use Vitest with React Testing Library.
 - Backend unit tests use Jest; backend HTTP integration tests use Supertest.
-- Persistence, integration, and E2E tests run against real PostgreSQL, never a mocked or in-memory substitute, because money scales, date semantics, and effective-Overdue SQL all live in the database.
+- Persistence, integration, and E2E tests run against real PostgreSQL, never a mocked or in-memory substitute, because `NUMERIC` scales, `DATE` handling, constraints, and the parameterized effective-Overdue SQL all live in the database; business-date derivation itself is application logic per [ADR 0004](adr/0004-use-business-date-semantics.md).
 
 Migration tooling is owned by [Database and Configuration Changes](#database-and-configuration-changes); architecture decisions by the [ADR section](#architecture-decision-records).
 

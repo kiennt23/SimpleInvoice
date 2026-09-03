@@ -2,7 +2,7 @@
 
 **Generated:** 2026-09-03
 **Repository:** `git@github.com:kiennt23/SimpleInvoice.git`
-**Branch:** `main`
+**Default branch:** `main`
 
 ## OVERVIEW
 
