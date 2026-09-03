@@ -23,6 +23,7 @@ Requirements and development conventions are documented; no application has been
 ```text
 101_assessment/
 ├── .gitignore                        # Excludes generated agent tooling state
+├── README.md                         # Repository entry point and planned-system overview
 ├── AGENTS.md                         # Agent guidance for this workspace
 ├── docs/
 │   ├── Assessment_Fullstack_v3.0.0.pdf # Product requirements and seed-data reference
