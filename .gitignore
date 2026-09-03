@@ -1,2 +1,9 @@
 .codegraph
 .omo/
+node_modules/
+dist/
+build/
+coverage/
+.vitest/
+.env
+generated/prisma/
