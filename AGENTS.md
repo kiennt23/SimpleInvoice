@@ -15,6 +15,9 @@ Requirements and development conventions are documented; no application has been
 - The filename says v3.0.0, but the document header/footer says assessment version 2.3.1.
 - Prefer explicit numbered requirements over conflicting Appendix A sample fields.
 - Implementation-ready requirements: `docs/requirements.md`.
+- Approved target architecture: `docs/architecture.md`.
+- Accepted architecture decision records: `docs/adr/0001` through `0004` (persistence, authentication, money, dates).
+- Repeatable procedures: `docs/sops/`, currently the adding-a-currency SOP.
 - Git, review, testing, and documentation conventions: `docs/development-workflow.md`.
 - Do not treat `.codegraph/` or `.omo/` as project source; both are generated agent tooling state.
 
@@ -28,20 +31,24 @@ Requirements and development conventions are documented; no application has been
 ├── docs/
 │   ├── Assessment_Fullstack_v3.0.0.pdf # Product requirements and seed-data reference
 │   ├── requirements.md                 # Normative implementation requirements
+│   ├── architecture.md                 # Approved target architecture (not yet scaffolded)
+│   ├── adr/                            # Accepted architecture decision records 0001-0004
+│   ├── sops/                           # Repeatable procedures (adding a currency)
 │   └── development-workflow.md         # Git, review, testing, and maintenance rules
-├── .codegraph/                       # Generated empty code index
-└── .omo/                             # Generated agent session state
 ```
 
 There are no source files, package manifests, tests, Docker files, CI workflows, or executable entry points yet.
 
 ## TARGET SYSTEM
 
-The project is an npm-workspaces monorepo: frontend, backend, and shared code live in one repository with npm as the package manager. The target is a responsive React TypeScript frontend, a modular NestJS TypeScript API, and a relational database, with PostgreSQL preferred. See `docs/requirements.md` for the complete product, API, validation, data, testing, and delivery specification.
+The project is an npm-workspaces monorepo: frontend, backend, and shared code live in one repository with npm as the package manager. The target is a responsive React TypeScript frontend, a modular NestJS TypeScript API, and PostgreSQL as the selected database. See `docs/architecture.md` for topology, modules, and boundaries and `docs/requirements.md` for the complete product, API, validation, data, testing, and delivery specification. No application code exists yet.
 
 ## DOCUMENTATION MAINTENANCE
 
 - Update `docs/requirements.md` with any approved product, API, validation, or acceptance change.
+- Update `docs/architecture.md` with approved changes to topology, workspace layout, modules, boundaries, stack, data access, frontend state, or proxy/Compose topology.
+- Add an ADR under `docs/adr/` only when a decision meets the significance threshold in [Architecture Decision Records](docs/development-workflow.md#architecture-decision-records); link it from `docs/architecture.md`.
+- Extend `docs/sops/` when a repeatable procedure is approved; keep each SOP procedure in one file and link to it.
 - Update `docs/development-workflow.md` with any approved development, review, test, merge, or maintenance change.
 - Change documentation in the same pull request as the behavior or convention it describes.
 - Keep each detailed rule in one authoritative document and link to it elsewhere rather than duplicating it.
