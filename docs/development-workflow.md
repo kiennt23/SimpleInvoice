@@ -123,6 +123,14 @@ TDD is required for calculations, overdue derivation, due-date validation, uniqu
 
 Tests should assert externally meaningful behavior rather than private implementation details. Never delete, skip, or weaken a failing test merely to make a check pass.
 
+## Test Tooling
+
+- Frontend unit tests use Vitest with React Testing Library.
+- Backend unit tests use Jest; backend HTTP integration tests use Supertest.
+- Persistence, integration, and E2E tests run against real PostgreSQL, never a mocked or in-memory substitute, because money scales, date semantics, and effective-Overdue SQL all live in the database.
+
+Migration tooling is owned by [Database and Configuration Changes](#database-and-configuration-changes); architecture decisions by the [ADR section](#architecture-decision-records).
+
 ## TypeScript Conventions
 
 - Enable strict TypeScript settings in every workspace.
@@ -134,7 +142,7 @@ Tests should assert externally meaningful behavior rather than private implement
 - Use descriptive names; avoid abbreviations that are not part of the product language.
 - Add comments only when they explain a non-obvious decision or invariant.
 
-Framework-specific conventions will be added after the frontend, backend, database, and test toolchains are selected and scaffolded.
+Framework-specific conventions will be added after the selected stack (React, NestJS, PostgreSQL, Prisma, and the chosen test runners) is scaffolded and its behavior is verified. The stack itself is decided; only the detailed conventions await implementation.
 
 ## Linting and Formatting
 
@@ -153,7 +161,7 @@ Exact command names must be documented only after they exist and have been execu
 
 ## Database and Configuration Changes
 
-- Commit schema changes and their migration together.
+- Schema changes are made with Prisma Migrate; every migration is committed alongside the schema change it implements.
 - Never edit a migration after it has been merged; create a corrective migration.
 - Document destructive or data-shape changes in the pull request.
 - Keep secrets and local values out of version control.
@@ -186,7 +194,7 @@ Documentation is part of the definition of done. Update it in the same pull requ
 | Environment key | Update `.env.example` and setup documentation |
 | API contract | Update requirements and generated Swagger metadata |
 | Product or API decision | Update the open-decision register in `docs/requirements.md` |
-| Technical decision (ORM, test runner, Git host, CI) | Update the Open Technical Decisions section in this document |
+| Technical decision (CI provider) | Update the Open Technical Decisions section in this document |
 | Architecturally significant decision | Update its owning document and add an ADR when it meets the threshold above |
 
 Do not duplicate the same detailed rule across multiple documents. Keep the authoritative explanation in one place and link to it elsewhere.
@@ -210,8 +218,6 @@ The exact CI check names will be added after the repository and CI configuration
 
 These decisions must be resolved and recorded here before the affected implementation begins:
 
-- ORM and migration tooling
-- Test runners for frontend and backend
 - CI provider and required check names
 
-Product and API decisions are tracked in the [Requirements Specification](requirements.md) open-decision register; do not duplicate them here.
+Test tooling and migration tooling are decided and owned in the sections above; do not duplicate them here. Product and API decisions are tracked in the [Requirements Specification](requirements.md) open-decision register.
