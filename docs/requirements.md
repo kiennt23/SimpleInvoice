@@ -145,6 +145,21 @@ Both the client form and the API boundary must enforce the applicable rules belo
 | Tax percentage | Non-negative, defaults to 10 when omitted |
 | Discount | Optional, non-negative amount, defaults to 0 when omitted |
 
+### Source-Data Field Disposition
+
+The assessment's data-model reference names fields beyond the creation flow above. Their disposition:
+
+| Field | Disposition |
+| --- | --- |
+| `invoiceReference` | Excluded: no requirement, endpoint, or UI rule uses it; excluded fields may be revisited only with an approved requirements change |
+| `description` | Excluded: no requirement, endpoint, or UI rule uses it |
+| `currencySymbol` | Deferred: excluded from storage; display behavior is an open decision (see Open Product Decisions) |
+| `createdBy` | Excluded: the assessment names no audit-trail requirement or endpoint that consumes it |
+| `type` | Excluded: the assessment defines a single invoice type with no subtypes or transitions |
+| `invoiceGrossTotal` (Appendix A) | Excluded: superseded by the normative calculated fields (subtotal, taxAmount, totalAmount, balanceAmount) in the formulas section |
+
+Excluded fields do not appear in the Prisma schema, DTOs, contracts package, Swagger, or seeds.
+
 ## Monetary Calculations
 
 For the required one-item creation flow:
@@ -201,6 +216,20 @@ Appendix A includes a sample persisted `Overdue` value. It must not be copied be
 - **DATA-006:** Seeds may persist only `Draft`, `Pending`, and `Paid`; past due dates should demonstrate derived `Overdue` behavior. No seed record may carry a persisted `Overdue` status.
 - **DATA-007:** Customer details are persisted as an immutable snapshot on the invoice, copied at creation time and never joined from a separate customer record at read time.
 - **DATA-008:** All list sorting appends a deterministic identifier tie-breaker so pagination remains stable for equal sort keys.
+
+### Environment Configuration Inventory
+
+`DELIVERY-003` and `DELIVERY-004` require environment-only configuration and a complete `.env.example`. The required keys:
+
+| Source | Required configuration |
+| --- | --- |
+| `DELIVERY-002` | Per-service `Dockerfile` paths (frontend, backend, database) |
+| `DELIVERY-002` | Host port mapping for each Compose service |
+| `ADR 0002` | Application origin used for Origin-header validation (e.g. `APP_ORIGIN`) |
+| `ADR 0004` | `BUSINESS_TIME_ZONE` (validated IANA name, default `UTC`) |
+| `AUTH-003` | JWT expiry configuration |
+| `AUTH-00*` | JWT signing secret (env-only, never committed) |
+| Persistence | `DATABASE_URL` connection string |
 
 ## Testing Requirements
 
