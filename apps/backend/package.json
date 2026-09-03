@@ -1,5 +1,46 @@
 {
   "name": "@simpleinvoice/backend",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "engines": {
+    "node": "^22.12"
+  },
+  "scripts": {
+    "start": "node dist/main.js",
+    "start:dev": "tsc-watch --onSuccess \"node dist/main.js\"",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "jest --config jest.config.cjs",
+    "test:e2e": "jest --config jest.e2e.config.cjs --runInBand",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nestjs/common": "11.2.3",
+    "@nestjs/config": "4.0.4",
+    "@nestjs/core": "11.2.3",
+    "@nestjs/platform-express": "11.2.3",
+    "@nestjs/swagger": "11.4.7",
+    "class-transformer": "0.5.1",
+    "class-validator": "0.15.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "11.2.3",
+    "@types/express": "5.0.6",
+    "@types/jest": "30.0.0",
+    "@types/node": "22.19.21",
+    "@types/supertest": "7.2.1",
+    "eslint": "9.39.5",
+    "globals": "17.11.0",
+    "jest": "30.2.0",
+    "prettier": "3.9.6",
+    "supertest": "7.2.2",
+    "ts-jest": "29.4.12",
+    "tsc-watch": "7.2.0",
+    "typescript": "6.0.2",
+    "typescript-eslint": "8.67.0"
+  }
 }
