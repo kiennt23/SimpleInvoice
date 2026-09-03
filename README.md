@@ -12,7 +12,7 @@ The application is planned as an npm-workspaces monorepo holding the frontend, b
 
 - Responsive React TypeScript frontend
 - Modular NestJS TypeScript REST API
-- Relational database, with PostgreSQL preferred
+- Relational database, with PostgreSQL selected
 - JWT-based authentication
 - Invoice list, detail, and create scope (search, filter, sort, pagination, one-line-item Draft creation)
 - Swagger documentation at `/api/docs`
@@ -23,6 +23,9 @@ The application is planned as an npm-workspaces monorepo holding the frontend, b
 ## Documentation
 
 - [Requirements specification](docs/requirements.md): implementation-ready product, API, validation, data, testing, and delivery requirements
+- [Architecture overview](docs/architecture.md): approved target topology, workspace layout, modules, and stack (scaffolding has not started)
+- [Architecture decision records](docs/adr/): rationale for persistence, authentication, money, and date decisions
+- [SOP: adding a currency](docs/sops/adding-a-currency.md): repeatable procedure for extending supported currencies
 - [Development workflow](docs/development-workflow.md): Git, review, testing, and documentation conventions
 - [Assessment specification](docs/Assessment_Fullstack_v3.0.0.pdf): the original product requirements and seed-data reference
 

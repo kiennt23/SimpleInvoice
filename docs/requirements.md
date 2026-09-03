@@ -29,7 +29,7 @@ Status transitions, payment collection, customer management, and external third-
 | --- | --- |
 | Frontend | Responsive ReactJS application written in TypeScript |
 | Backend | Modular NestJS REST API written in TypeScript |
-| Database | Relational database; PostgreSQL is preferred |
+| Database | PostgreSQL |
 | Authentication | JWT-based authentication |
 | API documentation | Swagger UI at `/api/docs` |
 | Runtime packaging | Docker Compose with frontend, backend, and database services |
@@ -42,7 +42,7 @@ Status transitions, payment collection, customer management, and external third-
 - **AUTH-004:** `GET /auth/me` must return the authenticated user.
 - **AUTH-005:** All invoice endpoints and `/auth/me` must reject unauthenticated requests.
 - **AUTH-006:** Protected frontend routes must redirect unauthenticated users to login.
-- **AUTH-007:** The client must store and transmit the token securely; the exact storage mechanism remains an architectural decision.
+- **AUTH-007:** The token is issued as an `HttpOnly`, `SameSite=Lax` cookie and is never readable by browser code. `Secure` is required outside controlled local HTTP development, the cookie lifetime aligns with the configured JWT expiry, and authenticated unsafe requests must carry an `Origin` header matching the configured application origin; a missing or mismatched Origin is rejected. The exact rejection status and body remain open (see Open Product Decisions). Rationale: [ADR 0002](adr/0002-use-hardened-cookie-based-browser-authentication.md).
 - **AUTH-008:** Seed data must include a reviewer account, and its non-production credentials must be documented in the root README.
 - **AUTH-009:** The login screen must provide email and password inputs with a submit action.
 - **AUTH-010:** The client must validate the login form before submission: email must be present and well-formed, password must be present and non-empty, and invalid input must show visible validation feedback without an API call.
@@ -60,6 +60,7 @@ Status transitions, payment collection, customer management, and external third-
 - **LIST-006:** Pagination must be performed by the server with a configurable page size.
 - **LIST-007:** Date filtering must support `fromDate` and `toDate`.
 - **LIST-008:** Filtering by derived `Overdue` status must occur before pagination totals and page contents are calculated.
+- **LIST-009:** Equal sort keys must produce a stable page order across requests.
 
 ### List API
 
@@ -121,6 +122,8 @@ The following list-query details remain open decisions (see Open Product Decisio
 - **CREATE-009:** Required customer, invoice, date, currency, and item fields must be validated by both the relevant client form and the API boundary.
 - **CREATE-010:** The backend must calculate all authoritative totals.
 - **CREATE-011:** After successful creation, the frontend must show a success notification and redirect the user specifically to the Invoice List.
+- **CREATE-012:** The API must create the invoice and its line item in one atomic transaction.
+- **CREATE-013:** Quantity must fit a documented bounded integer range sufficient for calculation and storage; the exact bound is decided with the other creation contracts.
 
 ### Creation Field Rules
 
@@ -155,8 +158,11 @@ balanceAmount = totalAmount - totalPaid
 
 - **MONEY-001:** The frontend must not provide authoritative calculated values to be persisted.
 - **MONEY-002:** Monetary values must not be persisted using binary floating-point types.
-- **MONEY-003:** Precision and rounding behavior must be decided and documented before implementation.
-- **MONEY-004:** `totalPaid` defaults and supported currencies must be decided before implementation.
+- **MONEY-003:** All monetary and percentage arithmetic uses exact decimals (`Prisma.Decimal` as a pure value type, never JavaScript `number`), with HALF_UP rounding to 2 decimal places at the boundaries defined in [ADR 0003](adr/0003-use-exact-decimal-money.md): subtotal is rounded first, tax is computed from the rounded subtotal, and total and balance are materialized at 2 decimal places.
+- **MONEY-004:** Supported currencies are initially AUD, USD, and GBP, each with 2 minor-unit decimals; the canonical registry (code and minor units) lives in `packages/contracts` and is extended per the [currency SOP](sops/adding-a-currency.md). New invoices persist `totalPaid = 0.00`. Discount has no approved upper bound. Currency-symbol display behavior remains open.
+- **MONEY-005:** Monetary and percentage request fields are decimal strings in canonical syntax (no exponent or whitespace); every decimal response field is a decimal string; `quantity` remains an integer.
+- **MONEY-006:** Persisted monetary and percentage columns use PostgreSQL `NUMERIC` with the scales in DATA-003.
+- **MONEY-007:** Decimal inputs exceeding a field's approved scale must be rejected with HTTP 400 before calculation; values are never silently rounded by storage. Quantity is a positive integer within a documented bounded range, decided with the other creation contracts.
 
 ## Status Rules
 
@@ -164,7 +170,8 @@ balanceAmount = totalAmount - totalPaid
 - **STATUS-002:** `Overdue` must never be persisted or seeded.
 - **STATUS-003:** At read time, an invoice is `Overdue` when its persisted status is not `Paid` and its due date is before today.
 - **STATUS-004:** A `Paid` invoice remains `Paid` even when its due date is in the past.
-- **STATUS-005:** The definition of today and its timezone must be decided before implementation.
+- **STATUS-005:** "Today" is a single business date per request, computed in the IANA timezone validated from `BUSINESS_TIME_ZONE` (default `UTC`) through an injectable clock provider and passed into all effective-status derivation and queries. Host and database `CURRENT_DATE` are never used. See [ADR 0004](adr/0004-use-business-date-semantics.md).
+- **DATE-001:** `invoiceDate` and `dueDate` are strict `YYYY-MM-DD` strings in every API request and response, stored as PostgreSQL `DATE` with no timestamp component.
 
 Appendix A includes a sample persisted `Overdue` value. It must not be copied because it conflicts with the normative status rule.
 
@@ -188,10 +195,12 @@ Appendix A includes a sample persisted `Overdue` value. It must not be copied be
 
 - **DATA-001:** User, invoice, and invoice-item records must have stable identifiers; UUIDs are recommended by the assessment.
 - **DATA-002:** Invoice numbers must have a database-level unique constraint.
-- **DATA-003:** Invoice monetary fields must use an appropriate exact decimal representation.
+- **DATA-003:** Invoice monetary and percentage fields use exact decimal storage: `rate NUMERIC(19,4)`, `taxPercent NUMERIC(5,2)`, and `subtotal`, `taxAmount`, `discount`, `totalAmount`, `totalPaid`, and `balanceAmount` as `NUMERIC(19,2)`. Application code uses `Prisma.Decimal` exclusively ([ADR 0001](adr/0001-use-postgresql-and-prisma-for-persistence.md), [ADR 0003](adr/0003-use-exact-decimal-money.md)).
 - **DATA-004:** A seed command must be available as `npm run seed`.
 - **DATA-005:** Seed data must use Appendix A's records as the structural and relationship foundation, adapted wherever Appendix A conflicts with a normative rule, and add approximately 20-50 additional varied invoices so the dataset demonstrates search, status filtering, sorting, and pagination.
 - **DATA-006:** Seeds may persist only `Draft`, `Pending`, and `Paid`; past due dates should demonstrate derived `Overdue` behavior. No seed record may carry a persisted `Overdue` status.
+- **DATA-007:** Customer details are persisted as an immutable snapshot on the invoice, copied at creation time and never joined from a separate customer record at read time.
+- **DATA-008:** All list sorting appends a deterministic identifier tie-breaker so pagination remains stable for equal sort keys.
 
 ## Testing Requirements
 
@@ -219,13 +228,12 @@ Testing practice and pull-request gates are defined in [Development Workflow](de
 
 These decisions must be resolved before the affected implementation begins:
 
-- JWT client-storage mechanism
-- Money precision and rounding policy
-- Supported currencies and currency-symbol behavior
-- Date-only and timezone semantics
+- Currency-symbol display behavior
+- Whether discount may exceed subtotal plus tax
 - Pagination defaults and maximum page size
 - List-query coercion versus rejection policy
-- `totalPaid` default for newly created invoices
+- Origin-check rejection status and error contract
+- Behavior when a requested page lies beyond the final page
 - Login success and invalid-credential response schemas and status codes
 - `/auth/me` response schema and status codes
 - Invoice-list row schema and list response status codes
@@ -234,7 +242,6 @@ These decisions must be resolved before the affected implementation begins:
 - Duplicate invoice-number status and error contract
 - Missing-invoice error message contract; the HTTP status is fixed at 404 by DETAIL-005
 - Unauthenticated response status and error contract
-- Decimal JSON representation across all endpoints
 - Which date field `fromDate`/`toDate` filter on
 
 This specification must be updated in the same change whenever an approved decision modifies product or API behavior. Add an ADR only when the decision meets the significance threshold in [Architecture Decision Records](development-workflow.md#architecture-decision-records); routine decisions remain in their owning specification or workflow section.
