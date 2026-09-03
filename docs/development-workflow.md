@@ -18,7 +18,11 @@ This document defines how changes are designed, implemented, reviewed, tested, d
 | Formatting | Prettier |
 | Domain testing | Test-driven development |
 
-The Git hosting provider is GitHub. The CI provider has not yet been selected, so CI-provider-specific configuration must not be documented as final until it exists.
+The Git hosting provider is GitHub. The CI provider is GitHub Actions. Required pull-request checks are the three GitHub Actions job names `contracts`, `frontend`, and `backend`; GitHub surfaces one check per job, and each job runs the per-workspace steps (lint, format:check, typecheck, unit tests, backend E2E for the backend job, and build).
+
+## CI: GitHub Actions
+
+CI configuration lives in `.github/workflows/` and is added in the delivery wave. It defines three jobs named exactly `contracts`, `frontend`, and `backend`, one per workspace. Each job runs that workspace's checks: lint, format:check, typecheck, unit tests, and build; the `backend` job additionally runs its E2E (Supertest) suite against a real PostgreSQL service container. The three job names are the required checks a pull request must satisfy before squash merge.
 
 ## Repository Workflow
 
@@ -212,12 +216,10 @@ A change is ready to merge only when:
 - The pull request explains verification evidence and remaining limitations.
 - No secret, generated artifact, or unrelated change is included.
 
-The exact CI check names will be added after the repository and CI configuration exist.
+The exact CI check names are the GitHub Actions job names `contracts`, `frontend`, and `backend` (see [CI: GitHub Actions](#ci-github-actions)).
 
 ## Open Technical Decisions
 
-These decisions must be resolved and recorded here before the affected implementation begins:
+Every decision previously listed in this register has been resolved and recorded in the owning sections above (CI is GitHub Actions with the `contracts`, `frontend`, and `backend` required checks). There are zero open items in this register.
 
-- CI provider and required check names
-
-Test tooling and migration tooling are decided and owned in the sections above; do not duplicate them here. Product and API decisions are tracked in the [Requirements Specification](requirements.md) open-decision register.
+Test tooling and migration tooling are decided and owned in the sections above; do not duplicate them here. Product and API decisions are resolved in the [Requirements Specification](requirements.md) normative sections.

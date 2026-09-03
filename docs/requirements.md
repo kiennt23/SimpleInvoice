@@ -36,19 +36,19 @@ Status transitions, payment collection, customer management, and external third-
 
 ## Authentication
 
-- **AUTH-001:** `POST /auth/login` must validate an email and password and issue a JWT for valid credentials.
+- **AUTH-001:** `POST /auth/login` must validate an email and password and, for valid credentials, respond HTTP 200 with `{"user": {"id", "email", "fullname"}}` and issue the JWT by setting the session cookie.
 - **AUTH-002:** Passwords must be stored as bcrypt hashes, never as plaintext.
 - **AUTH-003:** JWT expiration must come from environment configuration and default to 3600 seconds.
-- **AUTH-004:** `GET /auth/me` must return the authenticated user.
+- **AUTH-004:** `GET /auth/me` must return HTTP 200 with the same user object as successful login: `{"user": {"id", "email", "fullname"}}`.
 - **AUTH-005:** All invoice endpoints and `/auth/me` must reject unauthenticated requests.
 - **AUTH-006:** Protected frontend routes must redirect unauthenticated users to login.
-- **AUTH-007:** The token is issued as an `HttpOnly`, `SameSite=Lax` cookie and is never readable by browser code. `Secure` is required outside controlled local HTTP development, the cookie lifetime aligns with the configured JWT expiry, and authenticated unsafe requests must carry an `Origin` header matching the configured application origin; a missing or mismatched Origin is rejected. The exact rejection status and body remain open (see Open Product Decisions). Rationale: [ADR 0002](adr/0002-use-hardened-cookie-based-browser-authentication.md).
+- **AUTH-007:** The token is issued as an `HttpOnly`, `SameSite=Lax` cookie and is never readable by browser code. `Secure` is required outside controlled local HTTP development, the cookie lifetime aligns with the configured JWT expiry, and authenticated unsafe requests must carry an `Origin` header matching the configured application origin; a missing or mismatched Origin is rejected with HTTP 403 in the API-007 non-validation error shape. The Origin check applies only to authenticated unsafe methods (`POST`, `PUT`, `PATCH`, `DELETE`); `GET` and `HEAD` requests are never rejected for a missing Origin. Rationale: [ADR 0002](adr/0002-use-hardened-cookie-based-browser-authentication.md).
 - **AUTH-008:** Seed data must include a reviewer account, and its non-production credentials must be documented in the root README.
 - **AUTH-009:** The login screen must provide email and password inputs with a submit action.
 - **AUTH-010:** The client must validate the login form before submission: email must be present and well-formed, password must be present and non-empty, and invalid input must show visible validation feedback without an API call.
-- **AUTH-011:** The API must independently validate login requests: email format and password presence. Invalid credentials must be rejected without issuing a token.
+- **AUTH-011:** The API must independently validate login requests: email format and password presence. Invalid credentials must be rejected with HTTP 401 in the API-007 non-validation error shape, with no cookie issued and no token stored.
 - **AUTH-012:** A successful login must redirect the user to the Invoice List screen.
-- **AUTH-013:** A failed login must keep the user on the login screen, show a visible error, and store no token. The exact HTTP status and body for failed login remain an open decision (see Open Product Decisions).
+- **AUTH-013:** A failed login must keep the user on the login screen, show a visible error, and store no token. Invalid credentials return HTTP 401 in the API-007 non-validation error shape with no cookie.
 
 ## Invoice List
 
@@ -67,8 +67,8 @@ Status transitions, payment collection, customer management, and external third-
 `GET /invoices` accepts:
 | Query | Type and constraints | Purpose |
 | --- | --- | --- |
-| `page` | Integer, starting at 1 | Requested page |
-| `pageSize` | Integer | Number of records per page |
+| `page` | Integer, starting at 1; defaults to `1` | Requested page |
+| `pageSize` | Integer, 1 to 100; defaults to `10` | Number of records per page |
 | `sortBy` | Enum: `invoiceDate`, `dueDate`, `totalAmount` | Sort field |
 | `ordering` | Enum: `ASC` or `DESC` | Sort direction |
 | `status` | Enum: `Draft`, `Pending`, `Paid`, or derived `Overdue` | Effective invoice status |
@@ -97,9 +97,13 @@ The response contract is:
 }
 ```
 
-Do not use Appendix A's conflicting `pageNumber` and `totalRecords` names.
+Default query values are `page=1`, `pageSize=10`, `sortBy=invoiceDate`, and `ordering=DESC`. `fromDate`/`toDate` filter on `invoiceDate`, inclusive on both boundaries. Out-of-range or invalid query values are rejected with HTTP 400 using the API-006 validation-error contract; they are never coerced into a valid range. When the requested page lies beyond the final page, the response returns `data: []` together with the true `paging.total`.
 
-The following list-query details remain open decisions (see Open Product Decisions): which date field `fromDate`/`toDate` filter on, pagination defaults and maximum page size, and whether out-of-range numeric values are coerced or rejected. Rejected query values use the HTTP 400 validation-error contract in API-006.
+The list response status is HTTP 200. Each list row uses exactly this camelCase shape, with every total as a decimal string and every date as a `YYYY-MM-DD` string:
+
+```text
+invoiceId, invoiceNumber, customerName, invoiceDate, dueDate, totalAmount, status
+```
 
 ## Invoice Detail
 
@@ -107,7 +111,7 @@ The following list-query details remain open decisions (see Open Product Decisio
 - **DETAIL-002:** The detail view must show invoice and customer information.
 - **DETAIL-003:** The detail view must show line-item name, quantity, and rate.
 - **DETAIL-004:** The detail view must show subtotal, tax, discount, total, balance, and effective status.
-- **DETAIL-005:** A request for a missing invoice must return HTTP 404 using the API's consistent non-validation error shape.
+- **DETAIL-005:** A request for a missing invoice must return HTTP 404 with `error: "Not Found"` and `message: "Invoice not found"` in the API-007 non-validation error shape.
 
 ## Invoice Creation
 
@@ -115,15 +119,15 @@ The following list-query details remain open decisions (see Open Product Decisio
 - **CREATE-002:** The assessment flow must accept exactly one line item; the database schema may support multiple items.
 - **CREATE-003:** The user supplies the invoice number, and the database must enforce its uniqueness.
 - **CREATE-004:** The API must reject a due date earlier than the invoice date.
-- **CREATE-005:** Quantity must be a positive integer.
+- **CREATE-005:** Quantity must be a positive integer between 1 and 1000000 inclusive.
 - **CREATE-006:** Rate must be positive.
 - **CREATE-007:** Tax percentage must be non-negative and default to 10.
-- **CREATE-008:** Discount must be a non-negative monetary amount and default to 0.
+- **CREATE-008:** Discount must be a non-negative monetary amount and default to 0. A discount greater than subtotal plus tax is rejected with HTTP 400, so `totalAmount` and `balanceAmount` are never negative.
 - **CREATE-009:** Required customer, invoice, date, currency, and item fields must be validated by both the relevant client form and the API boundary.
 - **CREATE-010:** The backend must calculate all authoritative totals.
 - **CREATE-011:** After successful creation, the frontend must show a success notification and redirect the user specifically to the Invoice List.
 - **CREATE-012:** The API must create the invoice and its line item in one atomic transaction.
-- **CREATE-013:** Quantity must fit a documented bounded integer range sufficient for calculation and storage; the exact bound is decided with the other creation contracts.
+- **CREATE-013:** Quantity must fit the documented bounded integer range 1 to 1000000 inclusive, which is sufficient for calculation and storage.
 
 ### Creation Field Rules
 
@@ -140,7 +144,7 @@ Both the client form and the API boundary must enforce the applicable rules belo
 | Due date | Required, valid date, must be on or after the invoice date |
 | Currency | Required |
 | Item name | Required, non-empty |
-| Quantity | Required, positive integer |
+| Quantity | Required, positive integer, 1 to 1000000 |
 | Rate | Required, positive amount |
 | Tax percentage | Non-negative, defaults to 10 when omitted |
 | Discount | Optional, non-negative amount, defaults to 0 when omitted |
@@ -153,7 +157,7 @@ The assessment's data-model reference names fields beyond the creation flow abov
 | --- | --- |
 | `invoiceReference` | Excluded: no requirement, endpoint, or UI rule uses it; excluded fields may be revisited only with an approved requirements change |
 | `description` | Excluded: no requirement, endpoint, or UI rule uses it |
-| `currencySymbol` | Deferred: excluded from storage; display behavior is an open decision (see Open Product Decisions) |
+| `currencySymbol` | Excluded from storage: currency symbols are display-only values derived from the shared registry map (MONEY-004) and never persisted or accepted from client input |
 | `createdBy` | Excluded: the assessment names no audit-trail requirement or endpoint that consumes it |
 | `type` | Excluded: the assessment defines a single invoice type with no subtypes or transitions |
 | `invoiceGrossTotal` (Appendix A) | Excluded: superseded by the normative calculated fields (subtotal, taxAmount, totalAmount, balanceAmount) in the formulas section |
@@ -174,10 +178,10 @@ balanceAmount = totalAmount - totalPaid
 - **MONEY-001:** The frontend must not provide authoritative calculated values to be persisted.
 - **MONEY-002:** Monetary values must not be persisted using binary floating-point types.
 - **MONEY-003:** All monetary and percentage arithmetic uses exact decimals (`Prisma.Decimal` as a pure value type, never JavaScript `number`), with HALF_UP rounding to 2 decimal places at the boundaries defined in [ADR 0003](adr/0003-use-exact-decimal-money.md): subtotal is rounded first, tax is computed from the rounded subtotal, and total and balance are materialized at 2 decimal places.
-- **MONEY-004:** Supported currencies are initially AUD, USD, and GBP, each with 2 minor-unit decimals; the canonical registry (code and minor units) lives in `packages/contracts` and is extended per the [currency SOP](sops/adding-a-currency.md). New invoices persist `totalPaid = 0.00`. Discount has no approved upper bound. Currency-symbol display behavior remains open.
+- **MONEY-004:** Supported currencies are initially AUD, USD, and GBP, each with 2 minor-unit decimals; the canonical registry lives in `packages/contracts` and carries `{code, minorUnits, symbol}`. Symbols are display-only, sourced from the shared ISO currency map (AUD=`A$`, USD=`$`, GBP=`£`), and are never persisted, never stored on an invoice, and never accepted from client input. The registry is extended per the [currency SOP](sops/adding-a-currency.md). New invoices persist `totalPaid = 0.00`. A discount greater than subtotal plus tax is rejected with HTTP 400 (CREATE-008), so totals and balances are never negative.
 - **MONEY-005:** Monetary and percentage request fields are decimal strings in canonical syntax (no exponent or whitespace); every decimal response field is a decimal string; `quantity` remains an integer.
 - **MONEY-006:** Persisted monetary and percentage columns use PostgreSQL `NUMERIC` with the scales in DATA-003.
-- **MONEY-007:** Decimal inputs exceeding a field's approved scale must be rejected with HTTP 400 before calculation; values are never silently rounded by storage. Quantity is a positive integer within a documented bounded range, decided with the other creation contracts.
+- **MONEY-007:** Decimal inputs exceeding a field's approved scale must be rejected with HTTP 400 before calculation; values are never silently rounded by storage. Quantity is a positive integer within the bounded range 1 to 1000000 (CREATE-013).
 
 ## Status Rules
 
@@ -202,9 +206,20 @@ Appendix A includes a sample persisted `Overdue` value. It must not be copied be
 - **API-002:** API errors must consistently contain `statusCode`, `message`, and `error`.
 - **API-003:** A global exception filter must normalize error responses.
 - **API-004:** Swagger documentation must be implemented with `@nestjs/swagger` and served at `/api/docs`. It must document request payloads, query parameters, response schemas, and status codes for every endpoint.
-- **API-005:** Pagination defaults, maximum page size, invalid-query behavior, duplicate-number response status, and creation response status must be decided before implementation.
+- **API-005:** Pagination defaults are `page=1` and `pageSize=10`, with a maximum page size of 100. Invalid or out-of-range query values return HTTP 400 without coercion. A duplicate invoice number returns HTTP 409, and successful creation returns HTTP 201 with the created invoice.
 - **API-006:** Validation errors must return HTTP 400 with `statusCode: number`, `error: string`, and `message: string[]`.
 - **API-007:** Non-validation errors must return `statusCode: number`, `error: string`, and `message: string`. The global exception filter normalizes all errors to these two shapes.
+
+### Response Contracts
+
+These status codes and bodies are normative for every endpoint below. Validation failures use the API-006 shape; all other failures use the API-007 shape.
+
+- `POST /auth/login` success: HTTP 200 with `{"user": {"id", "email", "fullname"}}` and the `Set-Cookie` session header. Invalid credentials: HTTP 401 with `{"statusCode": 401, "message": <string>, "error": <string>}` and no cookie.
+- `GET /auth/me` success: HTTP 200 with the same `{"user": {"id", "email", "fullname"}}` object. Unauthenticated: HTTP 401 in the API-007 shape.
+- `GET /invoices` success: HTTP 200 with `{"data": [row], "paging": {"page", "pageSize", "total"}}`, where each row is `{invoiceId, invoiceNumber, customerName, invoiceDate, dueDate, totalAmount, status}` with totals as decimal strings and dates as `YYYY-MM-DD` strings.
+- `GET /invoices/:id` success: HTTP 200 with the detail schema: the list-row fields at the top level plus `currency`, `taxPercent`, a named `customer` object `{fullname, email, mobileNumber, address}`, a named `item` object `{name, quantity, rate}`, the decimal-string amounts `subtotal`, `taxAmount`, `discount`, `totalAmount`, `totalPaid`, `balanceAmount`, and `status`. Missing invoice: HTTP 404 with `error: "Not Found"` and `message: "Invoice not found"` (DETAIL-005).
+- `POST /invoices` success: HTTP 201 with the created invoice in the detail schema. Duplicate invoice number: HTTP 409 with `error: "Conflict"` and `message: "Invoice number already exists"`.
+- Origin-check rejection: HTTP 403 in the API-007 shape (AUTH-007). Unauthenticated access to any guarded endpoint: HTTP 401 in the API-007 shape (AUTH-005).
 
 ## Data Requirements
 
@@ -253,24 +268,10 @@ Testing practice and pull-request gates are defined in [Development Workflow](de
 - **DELIVERY-006:** Source may be delivered through GitHub, GitLab, or ZIP; a hosted repository is preferred.
 - **DELIVERY-007:** Submission must be sent to `ThanhNguyenBa@101digital.io` and `rajiv@101digital.io`, including the repository identifier and the candidate email address, by the communicated deadline.
 
+DELIVERY-006 and DELIVERY-007 are external submission and handoff steps owned by the user; they are outside the implementation scope.
+
 ## Open Product Decisions
 
-These decisions must be resolved before the affected implementation begins:
-
-- Currency-symbol display behavior
-- Whether discount may exceed subtotal plus tax
-- Pagination defaults and maximum page size
-- List-query coercion versus rejection policy
-- Origin-check rejection status and error contract
-- Behavior when a requested page lies beyond the final page
-- Login success and invalid-credential response schemas and status codes
-- `/auth/me` response schema and status codes
-- Invoice-list row schema and list response status codes
-- Invoice-detail response schema and status codes
-- Invoice-creation response schema and status codes
-- Duplicate invoice-number status and error contract
-- Missing-invoice error message contract; the HTTP status is fixed at 404 by DETAIL-005
-- Unauthenticated response status and error contract
-- Which date field `fromDate`/`toDate` filter on
+Every decision previously listed in this register has been resolved and recorded as normative text in the owning sections above (Authentication, Invoice List, Invoice Detail, Invoice Creation, Monetary Calculations, and Validation and Errors). There are zero open items in this register.
 
 This specification must be updated in the same change whenever an approved decision modifies product or API behavior. Add an ADR only when the decision meets the significance threshold in [Architecture Decision Records](development-workflow.md#architecture-decision-records); routine decisions remain in their owning specification or workflow section.
