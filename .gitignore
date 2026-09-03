@@ -7,3 +7,6 @@ coverage/
 .vitest/
 .env
 generated/prisma/
+apps/backend/src/generated/
+apps/backend/dist/
+apps/backend/test/
