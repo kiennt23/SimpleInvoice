@@ -12,7 +12,7 @@ Invoice totals, tax, discounts, and balances are money. MONEY-002 already forbid
 
 All monetary values are exact decimals end to end:
 
-- **Supported currencies** start as AUD, USD, and GBP, each with 2 minor-unit decimals. The canonical registry (code and minor units) lives in `packages/contracts`; extending it follows the [currency SOP](../sops/adding-a-currency.md). Currency-symbol display behavior remains an open decision.
+- **Supported currencies** start as AUD, USD, and GBP, each with 2 minor-unit decimals. The canonical registry carries `{code, minorUnits, symbol}` and lives in `packages/contracts`; extending it follows the [currency SOP](../sops/adding-a-currency.md). Symbols are display-only, sourced from the shared ISO currency map, and are never persisted, never stored on an invoice, and never accepted from client input.
 - **Persistence** uses PostgreSQL `NUMERIC` with the scales fixed in the [Requirements Specification](../requirements.md): `rate NUMERIC(19,4)`, `taxPercent NUMERIC(5,2)`, all money amounts `NUMERIC(19,2)`.
 - **Arithmetic** uses `Prisma.Decimal` only. JavaScript `number` never touches a monetary or percentage value at any layer, in examples or in code.
 - **Rounding**, in calculation order:
@@ -22,7 +22,7 @@ All monetary values are exact decimals end to end:
   4. `balanceAmount = totalAmount - totalPaid`, materialized at 2 decimal places.
 - **New invoices** have `totalPaid = 0.00`.
 - **Transport** uses decimal strings for every monetary and percentage request field and every decimal response field; `quantity` remains an integer. The authoritative field rules are in the Requirements Specification.
-- **Discount** has a non-negative floor but no approved upper bound; none is invented here.
+- **Discount** has a non-negative floor, and its upper bound is `subtotal + taxAmount`: a discount greater than subtotal plus tax is rejected with HTTP 400, so `totalAmount` and `balanceAmount` are never negative.
 
 ## Considered Alternatives
 
