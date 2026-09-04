@@ -12,3 +12,4 @@ export type {
   CreateInvoiceResponse,
 } from "./create.js";
 export type { ApiError, ValidationError } from "./error.js";
+export type { AuthUser, LoginRequest, AuthResponse } from "./auth.js";
