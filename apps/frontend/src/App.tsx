@@ -1,15 +1,23 @@
 import "./index.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { protectedRouteLoader } from "./api/auth";
-import { HomeRedirect, InvoicePlaceholder, LoginPage } from "./auth";
+import { HomeRedirect, LoginPage } from "./auth";
+import { InvoiceListPage } from "./invoices/InvoiceListPage";
+
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
-  { path: "/invoices", loader: protectedRouteLoader, element: <InvoicePlaceholder /> },
+  { path: "/invoices", loader: protectedRouteLoader, element: <InvoiceListPage /> },
   { path: "/", element: <HomeRedirect /> },
 ]);
 
 export function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
 }

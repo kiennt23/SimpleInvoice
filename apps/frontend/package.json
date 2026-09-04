@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@simpleinvoice/contracts": "*",
+    "@tanstack/react-query": "^5.102.8",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3",
