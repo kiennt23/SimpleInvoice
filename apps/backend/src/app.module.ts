@@ -8,9 +8,10 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { AuthModule } from "./auth/auth.module";
 import { JwtGuard } from "./auth/jwt.guard";
 import { OriginGuard } from "./auth/origin.guard";
+import { InvoicesModule } from "./invoices/invoices.module";
 
 @Module({
-  imports: [ConfigModule, PrismaModule, AuthModule],
+  imports: [ConfigModule, PrismaModule, AuthModule, InvoicesModule],
   controllers: [HealthController],
   providers: [
     { provide: APP_PIPE, useValue: new ValidationPipe({ whitelist: true, transform: true }) },
