@@ -1,6 +1,6 @@
 import type { InvoiceStatus, SortField, SortOrder } from "@simpleinvoice/contracts";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { fetchInvoiceList } from "./api";
 
@@ -27,6 +27,7 @@ function requestParams(searchParams: URLSearchParams) {
 
 export function InvoiceListPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = requestParams(searchParams);
   const queryString = params.toString();
@@ -50,6 +51,11 @@ export function InvoiceListPage() {
   return (
     <main className="invoice-list">
       <h1>Invoices</h1>
+      {(location.state as { notification?: string } | null)?.notification && (
+        <p className="success-notification" role="status">
+          {(location.state as { notification: string }).notification}
+        </p>
+      )}
       <form className="invoice-filters" onSubmit={(event) => event.preventDefault()}>
         <label>
           Search{" "}
