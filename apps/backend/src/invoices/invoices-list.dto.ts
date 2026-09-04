@@ -1,4 +1,4 @@
-import { Type } from "class-transformer";
+import { Transform } from "class-transformer";
 import {
   IsDateString,
   IsIn,
@@ -13,15 +13,19 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 const ISO_DATE = /^\d{4}-(0[1-9]|1[0-2])-([0-2]\d|3[01])$/;
 
+function integerQuery({ value }: { value: unknown }): unknown {
+  return typeof value === "string" && /^\d+$/.test(value) ? Number(value) : value;
+}
+
 export class InvoicesListQueryDto {
   @ApiPropertyOptional({ default: 1, minimum: 1 })
-  @Type(() => Number)
+  @Transform(integerQuery)
   @IsInt()
   @Min(1)
   page = 1;
 
   @ApiPropertyOptional({ default: 10, minimum: 1, maximum: 100 })
-  @Type(() => Number)
+  @Transform(integerQuery)
   @IsInt()
   @Min(1)
   @Max(100)

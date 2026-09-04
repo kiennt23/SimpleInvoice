@@ -57,6 +57,52 @@ body {
   place-items: center;
 }
 
+.login-form {
+  display: grid;
+  width: min(100%, 28rem);
+  padding: var(--space-6);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.login-form h1 {
+  margin: 0 0 var(--space-6);
+}
+
+.login-form label {
+  margin-top: var(--space-3);
+  font-weight: var(--font-weight-medium);
+}
+
+.login-form input {
+  min-height: 2.75rem;
+  width: 100%;
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  font: inherit;
+}
+
+.login-form input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.login-form p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-danger);
+}
+
+.login-form button {
+  min-height: 2.75rem;
+  margin-top: var(--space-6);
+  border: 0;
+  background: var(--color-accent);
+  color: var(--color-surface);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
 .scaffold-marker {
   width: min(100%, var(--measure-copy));
   padding-inline-start: var(--space-4);

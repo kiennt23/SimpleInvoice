@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from "@nestjs/common";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -37,7 +46,15 @@ export class InvoicesController {
   @ApiBadRequestResponse({ description: "Invalid invoice id", type: ApiValidationErrorDto })
   @ApiNotFoundResponse({ description: "Invoice not found", type: ApiErrorDto })
   @ApiUnauthorizedResponse({ description: "Authentication required", type: ApiErrorDto })
-  detail(@Param("id", new ParseUUIDPipe()) id: string) {
+  detail(
+    @Param(
+      "id",
+      new ParseUUIDPipe({
+        exceptionFactory: () => new BadRequestException(["id must be a UUID"]),
+      }),
+    )
+    id: string,
+  ) {
     return this.invoices.detail(id);
   }
 

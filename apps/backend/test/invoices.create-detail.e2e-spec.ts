@@ -124,6 +124,15 @@ describe("invoice create and detail (e2e, PostgreSQL)", () => {
       error: "Not Found",
       message: "Invoice not found",
     });
+    const invalidId = await request(app.getHttpServer())
+      .get("/invoices/not-a-uuid")
+      .set("Cookie", cookie)
+      .expect(400);
+    expect(invalidId.body).toEqual({
+      statusCode: 400,
+      error: "Bad Request",
+      message: ["id must be a UUID"],
+    });
   });
 
   it("rejects an earlier due date and an array/two-item payload", async () => {

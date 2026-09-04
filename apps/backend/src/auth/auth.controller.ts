@@ -9,9 +9,9 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import {
+  ApiBadRequestResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
@@ -22,7 +22,7 @@ import { AuthService } from "./auth.service";
 import type { AuthenticatedRequest, AuthUser } from "./auth.types";
 import { LoginDto } from "./login.dto";
 import { Public } from "./public.decorator";
-import { ApiErrorDto, AuthResponseDto } from "./auth-response.dto";
+import { ApiErrorDto, ApiValidationErrorDto, AuthResponseDto } from "./auth-response.dto";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -40,7 +40,7 @@ export class AuthController {
     description: "Authenticated user; sid is issued in Set-Cookie",
     type: AuthResponseDto,
   })
-  @ApiResponse({ status: 400, description: "Invalid request body" })
+  @ApiBadRequestResponse({ description: "Invalid request body", type: ApiValidationErrorDto })
   @ApiUnauthorizedResponse({ description: "Invalid email or password", type: ApiErrorDto })
   async login(
     @Body() dto: LoginDto,

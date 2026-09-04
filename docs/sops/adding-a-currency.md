@@ -1,6 +1,6 @@
 # SOP: Adding a Supported Currency
 
-This procedure extends SimpleInvoice's supported invoice currencies. The canonical registry is the currency metadata in `packages/contracts`; the approved baseline is AUD, USD, and GBP, each with 2 minor-unit decimals ([ADR 0003](../adr/0003-use-exact-decimal-money.md)). Application scaffolding has not started, so the steps below name files and areas, not verified commands.
+This procedure extends SimpleInvoice's supported invoice currencies. The canonical registry is the currency metadata in `packages/contracts`; the approved baseline is AUD, USD, and GBP, each with 2 minor-unit decimals ([ADR 0003](../adr/0003-use-exact-decimal-money.md)).
 
 ## Procedure
 

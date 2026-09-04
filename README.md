@@ -80,6 +80,8 @@ The command is idempotent: it upserts the reviewer, replaces invoice data, and c
 
 ## Quality gates
 
+Run these after exporting the root `.env` as shown in the local setup. The backend build and E2E suite require `DATABASE_URL`; E2E also requires that database to be migrated.
+
 ```sh
 npm run lint
 npm run format:check
@@ -90,7 +92,7 @@ npm run test:run -w apps/frontend
 npm run build
 ```
 
-Backend E2E tests require a migrated PostgreSQL database through `DATABASE_URL`. GitHub Actions runs the `contracts`, `frontend`, and `backend` jobs on pull requests and pushes to `main`.
+GitHub Actions runs the `contracts`, `frontend`, and `backend` jobs on pull requests and pushes to `main`.
 
 ## Assumptions and limitations
 

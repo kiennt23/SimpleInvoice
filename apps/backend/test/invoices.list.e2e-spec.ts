@@ -83,6 +83,7 @@ describe("GET /invoices (e2e, PostgreSQL)", () => {
     await request(app.getHttpServer()).get("/invoices").expect(401);
     for (const query of [
       "page=0",
+      "page=1e0",
       "pageSize=101",
       "page=1.5",
       "sortBy=currency",
