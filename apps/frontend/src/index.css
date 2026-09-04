@@ -148,6 +148,29 @@ body {
 .invoice-list {
   padding: var(--space-6);
 }
+.invoice-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.invoice-list-header h1 {
+  margin: 0;
+}
+.primary-action {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  padding-inline: var(--space-4);
+  background: var(--color-accent);
+  color: var(--color-surface);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+.primary-action:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
 .invoice-filters {
   display: flex;
   flex-wrap: wrap;
@@ -178,13 +201,9 @@ td {
   text-align: left;
   white-space: nowrap;
 }
-tbody tr {
-  cursor: pointer;
-}
-tbody tr:focus,
-tbody tr:hover {
+tbody a:focus-visible {
   outline: 2px solid var(--color-accent);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 .pagination {
   display: flex;
@@ -306,6 +325,11 @@ tbody tr:hover {
 
   .invoice-filters label {
     width: 100%;
+  }
+
+  .invoice-list-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .pagination,
