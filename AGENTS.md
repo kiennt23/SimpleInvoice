@@ -56,6 +56,7 @@ npm run typecheck
 npm run test -w apps/backend
 npm run test:e2e -w apps/backend       # requires DATABASE_URL and migrated PostgreSQL
 npm run test:run -w apps/frontend
+npm run test:visual -w apps/frontend   # requires Playwright Chromium
 npm run build
 npm run prisma:deploy -w apps/backend  # requires DATABASE_URL
 npm run seed                           # requires DATABASE_URL

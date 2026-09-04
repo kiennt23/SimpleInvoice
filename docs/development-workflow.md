@@ -18,11 +18,11 @@ This document defines how changes are designed, implemented, reviewed, tested, d
 | Formatting | Prettier |
 | Domain testing | Test-driven development |
 
-The Git hosting provider is GitHub. The CI provider is GitHub Actions. Required pull-request checks are the three GitHub Actions job names `contracts`, `frontend`, and `backend`; GitHub surfaces one check per job, and each job runs the per-workspace steps (lint, format:check, typecheck, unit tests, backend E2E for the backend job, and build).
+The Git hosting provider is GitHub. The CI provider is GitHub Actions. Required pull-request checks are the three GitHub Actions job names `contracts`, `frontend`, and `backend`; GitHub surfaces one check per job, and each job runs the per-workspace steps (lint, format:check, typecheck, unit tests, frontend visual tests for the frontend job, backend E2E for the backend job, and build).
 
 ## CI: GitHub Actions
 
-CI configuration lives in `.github/workflows/` and is added in the delivery wave. It defines three jobs named exactly `contracts`, `frontend`, and `backend`, one per workspace. Each job runs that workspace's checks: lint, format:check, typecheck, unit tests, and build; the `backend` job additionally runs its E2E (Supertest) suite against a real PostgreSQL service container. The three job names are the required checks a pull request must satisfy before squash merge.
+CI configuration lives in `.github/workflows/` and defines three jobs named exactly `contracts`, `frontend`, and `backend`, one per workspace. Each job runs that workspace's checks: lint, format:check, typecheck, unit tests, and build; the `frontend` job additionally runs Playwright visual regression tests in Chromium, and the `backend` job runs its E2E (Supertest) suite against a real PostgreSQL service container. The three job names are the required checks a pull request must satisfy before squash merge.
 
 ## Repository Workflow
 

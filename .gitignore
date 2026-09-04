@@ -5,6 +5,8 @@ dist/
 build/
 coverage/
 .vitest/
+playwright-report/
+test-results/
 .env
 generated/prisma/
 apps/backend/src/generated/

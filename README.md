@@ -80,7 +80,7 @@ The command is idempotent: it upserts the reviewer, replaces invoice data, and c
 
 ## Quality gates
 
-Run these after exporting the root `.env` as shown in the local setup. The backend build and E2E suite require `DATABASE_URL`; E2E also requires that database to be migrated.
+Run these after exporting the root `.env` as shown in the local setup. The backend build and E2E suite require `DATABASE_URL`; E2E also requires that database to be migrated. Install the visual-test browser once with `npx playwright install chromium`.
 
 ```sh
 npm run lint
@@ -89,6 +89,7 @@ npm run typecheck
 npm run test -w apps/backend
 npm run test:e2e -w apps/backend
 npm run test:run -w apps/frontend
+npm run test:visual -w apps/frontend
 npm run build
 ```
 
@@ -101,5 +102,5 @@ GitHub Actions runs the `contracts`, `frontend`, and `backend` jobs on pull requ
 - Customer details are immutable invoice snapshots; there is no customer-management feature.
 - `Overdue` is derived at read time and is never persisted.
 - Supported currencies are AUD, USD, and GBP.
-- Browser-level end-to-end automation is not included; frontend flows are covered by component tests and responsive behavior has been manually verified.
+- Deterministic browser visual regression tests cover key pages at mobile and desktop sizes; live-backend browser workflows are manually verified rather than automated in CI.
 - Hosted deployment and external submission are not included.

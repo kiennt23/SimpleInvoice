@@ -261,6 +261,7 @@ Per-service Dockerfile paths and host port mappings are delivery configuration i
 - **TEST-005:** Backend tests must prove invoice-number uniqueness is enforced.
 - **TEST-006:** At least one integration or E2E test must exercise a workflow such as creating an invoice and then finding it in the list.
 - **TEST-007:** No coverage percentage is mandated.
+- **TEST-008:** Browser visual regression tests must cover the login, invoice list, invoice detail, and invoice creation pages at representative mobile and desktop viewport sizes using deterministic data.
 
 Testing practice and pull-request gates are defined in [Development Workflow](development-workflow.md).
 
