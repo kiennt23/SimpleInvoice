@@ -45,6 +45,16 @@ function renderDetail() {
   );
 }
 
+function setViewport(width: number) {
+  Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches: query === "(min-width: 48rem)" ? width >= 768 : false,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
+}
+
 describe("invoice detail", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -52,6 +62,19 @@ describe("invoice detail", () => {
   });
 
   afterEach(() => vi.unstubAllGlobals());
+
+  it.each([375, 1280])("keeps all detail sections available at a %ipx viewport", async (width) => {
+    setViewport(width);
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(detail), { status: 200 }));
+    renderDetail();
+
+    expect(await screen.findByRole("heading", { name: "Invoice INV-014" })).toBeVisible();
+    for (const heading of ["Invoice information", "Customer", "Line item", "Amounts"]) {
+      expect(screen.getByRole("heading", { name: heading })).toBeVisible();
+    }
+    expect(screen.getByRole("link", { name: /Back to invoices/ })).toBeVisible();
+    expect(window.matchMedia("(min-width: 48rem)").matches).toBe(width >= 768);
+  });
 
   it("renders the complete server detail without calculating monetary values", async () => {
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(detail), { status: 200 }));

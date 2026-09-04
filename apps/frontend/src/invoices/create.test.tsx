@@ -22,6 +22,16 @@ function renderCreate() {
   return router;
 }
 
+function setViewport(width: number) {
+  Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches: query === "(min-width: 48rem)" ? width >= 768 : false,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
+}
+
 function fillValidForm() {
   fireEvent.change(screen.getByLabelText("Customer name"), { target: { value: "Ada Lovelace" } });
   fireEvent.change(screen.getByLabelText("Customer email"), {
@@ -42,6 +52,18 @@ describe("invoice creation", () => {
   });
 
   afterEach(() => vi.unstubAllGlobals());
+
+  it.each([375, 1280])("keeps every form group and action available at a %ipx viewport", (width) => {
+    setViewport(width);
+    renderCreate();
+
+    for (const group of ["Customer", "Invoice", "Item", "Adjustments"]) {
+      expect(screen.getByRole("group", { name: group })).toBeVisible();
+    }
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Create invoice" })).toBeVisible();
+    expect(window.matchMedia("(min-width: 48rem)").matches).toBe(width >= 768);
+  });
 
   it("submits the exact writable payload once and redirects with success feedback", async () => {
     fetchMock.mockResolvedValueOnce(

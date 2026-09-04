@@ -13,6 +13,20 @@ function renderLogin() {
   render(<RouterProvider router={router} />);
 }
 
+function setViewport(width: number) {
+  Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches: query === "(min-width: 48rem)" ? width >= 768 : false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+}
+
 describe("authentication", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -21,6 +35,17 @@ describe("authentication", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it.each([375, 1280])("keeps the sign-in form usable at a %ipx viewport", (width) => {
+    setViewport(width);
+    renderLogin();
+
+    expect(screen.getByRole("main")).toHaveClass("app-shell");
+    expect(screen.getByRole("heading", { name: "Sign in" })).toBeVisible();
+    expect(screen.getByLabelText("Email")).toBeVisible();
+    expect(screen.getByLabelText("Password")).toBeVisible();
+    expect(window.matchMedia("(min-width: 48rem)").matches).toBe(width >= 768);
   });
 
   it("shows validation feedback and does not submit an invalid form", async () => {

@@ -110,7 +110,12 @@ body {
 }
 .invoice-filters label {
   display: grid;
+  min-width: 0;
   gap: var(--space-1);
+}
+.invoice-filters input,
+.invoice-filters select {
+  max-width: 100%;
 }
 .invoice-table-wrap {
   overflow-x: auto;
@@ -151,6 +156,7 @@ tbody tr:hover {
 .invoice-detail header,
 .invoice-detail dl div {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--space-4);
 }
@@ -164,6 +170,8 @@ tbody tr:hover {
 }
 .invoice-detail dd {
   margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   text-align: end;
 }
 
@@ -187,6 +195,7 @@ tbody tr:hover {
   gap: var(--space-4);
 }
 .invoice-create fieldset {
+  min-width: 0;
   margin: 0 0 var(--space-6);
   padding: var(--space-4);
   border: var(--border-width) solid var(--color-border);
@@ -240,6 +249,23 @@ tbody tr:hover {
 .form-actions button {
   min-height: 2.75rem;
   padding-inline: var(--space-4);
+}
+
+@media (max-width: 47.999rem) {
+  .invoice-list,
+  .invoice-detail,
+  .invoice-create {
+    padding: var(--space-4);
+  }
+
+  .invoice-filters label {
+    width: 100%;
+  }
+
+  .pagination,
+  .form-actions {
+    flex-wrap: wrap;
+  }
 }
 
 @media (min-width: 48rem) {
