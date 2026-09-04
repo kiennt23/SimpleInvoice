@@ -1,5 +1,6 @@
 import { Body, Controller, Post } from "@nestjs/common";
 import { IsInt, IsNotEmpty } from "class-validator";
+import { Public } from "../src/auth/public.decorator";
 
 export class FixtureDto {
   @IsNotEmpty()
@@ -14,6 +15,7 @@ export class FixtureDto {
  * (test/validation.e2e-spec.ts) — never in the production AppModule.
  */
 @Controller("fixture")
+@Public()
 export class FixtureController {
   @Post()
   create(@Body() dto: FixtureDto): { received: FixtureDto } {
