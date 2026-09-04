@@ -26,3 +26,14 @@ export class ApiErrorDto {
   @ApiProperty()
   message!: string;
 }
+
+export class ApiValidationErrorDto {
+  @ApiProperty()
+  statusCode!: number;
+
+  @ApiProperty()
+  error!: string;
+
+  @ApiProperty({ type: [String] })
+  message!: string[];
+}

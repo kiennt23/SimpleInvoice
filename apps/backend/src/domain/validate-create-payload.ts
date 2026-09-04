@@ -62,6 +62,11 @@ const MONEY_LIMIT = new Prisma.Decimal("100000000000000000");
 // NUMERIC(5,2) stores at most 3 integer digits: |value| < 10^3.
 const TAX_PERCENT_LIMIT = new Prisma.Decimal("1000");
 
+function isDateOnly(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
+}
 
 function parseField(
   errors: string[],
@@ -115,12 +120,13 @@ export function validateCreatePayload(
     errors.push("invoiceNumber is required");
   }
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(payload.invoiceDate)) {
+  const invoiceDateValid = isDateOnly(payload.invoiceDate);
+  if (!invoiceDateValid) {
     errors.push("invoiceDate must be a YYYY-MM-DD date");
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(payload.dueDate)) {
+  if (!isDateOnly(payload.dueDate)) {
     errors.push("dueDate must be a YYYY-MM-DD date");
-  } else if (payload.dueDate < payload.invoiceDate) {
+  } else if (invoiceDateValid && payload.dueDate < payload.invoiceDate) {
     errors.push("dueDate must be on or after invoiceDate");
   }
 

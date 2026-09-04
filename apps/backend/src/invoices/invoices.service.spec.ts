@@ -23,7 +23,12 @@ describe("InvoicesService", () => {
       }),
     };
     const config = { businessTimeZone: "Pacific/Honolulu" } as AppConfig;
-    const service = new InvoicesService(sql as unknown as InvoicesSqlBoundary, config, clock);
+    const service = new InvoicesService(
+      sql as unknown as InvoicesSqlBoundary,
+      {} as never,
+      config,
+      clock,
+    );
 
     await expect(
       service.list({ page: 2, pageSize: 1, sortBy: "invoiceDate", ordering: "DESC" }),
