@@ -142,3 +142,27 @@ tbody tr:hover {
   gap: var(--space-3);
   margin-top: var(--space-4);
 }
+
+.invoice-detail {
+  width: min(100%, 64rem);
+  margin-inline: auto;
+  padding: var(--space-6);
+}
+.invoice-detail header,
+.invoice-detail dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.invoice-detail section {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-surface);
+}
+.invoice-detail dt {
+  color: var(--color-text-muted);
+}
+.invoice-detail dd {
+  margin: 0;
+  text-align: end;
+}
