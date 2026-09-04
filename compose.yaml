@@ -1,0 +1,94 @@
+# `docker compose up -d --build` starts the seeded stack without an .env file.
+# Host ports: frontend 8080, backend 3000, PostgreSQL 5432.
+name: simpleinvoice
+
+x-backend-environment: &backend-environment
+  DATABASE_URL: postgresql://${POSTGRES_USER:-simpleinvoice}:${POSTGRES_PASSWORD:-simpleinvoice-local-password}@db:5432/${POSTGRES_DB:-simpleinvoice}
+  JWT_SECRET: ${JWT_SECRET:-dev-only-compose-secret-change-me}
+  JWT_EXPIRES_IN_SECONDS: ${JWT_EXPIRES_IN_SECONDS:-3600}
+  BUSINESS_TIME_ZONE: ${BUSINESS_TIME_ZONE:-UTC}
+  APP_ORIGIN: ${APP_ORIGIN:-http://localhost:8080}
+  PORT: ${PORT:-3000}
+  SEED_REVIEWER_EMAIL: ${SEED_REVIEWER_EMAIL:-reviewer@simpleinvoice.local}
+  SEED_REVIEWER_PASSWORD: ${SEED_REVIEWER_PASSWORD:-reviewer-local-password}
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: docker/database.Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-simpleinvoice}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-simpleinvoice-local-password}
+      POSTGRES_DB: ${POSTGRES_DB:-simpleinvoice}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    working_dir: /repo/apps/backend
+    command: ["npx", "prisma", "migrate", "deploy"]
+    environment: *backend-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  seed:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    working_dir: /repo/apps/backend
+    command: ["npm", "run", "seed"]
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment: *backend-environment
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
