@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
 import { InvoiceListPage } from "./InvoiceListPage";
@@ -68,6 +68,10 @@ describe("invoice list", () => {
       expect(screen.getByRole("table").parentElement).toHaveClass("invoice-table-wrap");
       expect(screen.getByRole("textbox", { name: /Search/ })).toBeVisible();
       expect(screen.getByRole("navigation", { name: "Invoice pages" })).toBeVisible();
+      expect(screen.getByRole("link", { name: "Create invoice" })).toHaveAttribute(
+        "href",
+        "/invoices/new",
+      );
       expect(window.matchMedia("(min-width: 48rem)").matches).toBe(width >= 768);
     },
   );
@@ -94,11 +98,13 @@ describe("invoice list", () => {
     });
   });
 
-  it("navigates an accessible row with the keyboard", async () => {
+  it("uses a native link for invoice navigation", async () => {
     fetchMock.mockResolvedValueOnce(response([row]));
-    const router = renderList();
-    fireEvent.keyDown(await screen.findByLabelText("Open invoice INV-001"), { key: "Enter" });
-    await waitFor(() => expect(router.state.location.pathname).toBe("/invoices/invoice-1"));
+    renderList();
+    expect(await screen.findByRole("link", { name: "INV-001" })).toHaveAttribute(
+      "href",
+      "/invoices/invoice-1",
+    );
   });
 
   it("shows an empty state with the true total beyond the final page", async () => {

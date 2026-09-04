@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { protectedRouteLoader } from "./api/auth";
+import { setUnauthorizedHandler } from "./api/client";
 import { HomeRedirect, LoginPage } from "./auth";
 import { InvoiceCreatePage } from "./invoices/InvoiceCreatePage";
 import { InvoiceDetailPage } from "./invoices/InvoiceDetailPage";
@@ -17,6 +18,8 @@ const router = createBrowserRouter([
   { path: "/invoices/:id", loader: protectedRouteLoader, element: <InvoiceDetailPage /> },
   { path: "/", element: <HomeRedirect /> },
 ]);
+
+setUnauthorizedHandler(() => void router.navigate("/login"));
 
 export function App() {
   return (

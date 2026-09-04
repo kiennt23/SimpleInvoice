@@ -1,6 +1,6 @@
 import type { InvoiceStatus, SortField, SortOrder } from "@simpleinvoice/contracts";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 import { fetchInvoiceList } from "./api";
 
@@ -26,7 +26,6 @@ function requestParams(searchParams: URLSearchParams) {
 }
 
 export function InvoiceListPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const params = requestParams(searchParams);
@@ -50,7 +49,12 @@ export function InvoiceListPage() {
 
   return (
     <main className="invoice-list">
-      <h1>Invoices</h1>
+      <header className="invoice-list-header">
+        <h1>Invoices</h1>
+        <Link className="primary-action" to="/invoices/new">
+          Create invoice
+        </Link>
+      </header>
       {(location.state as { notification?: string } | null)?.notification && (
         <p className="success-notification" role="status">
           {(location.state as { notification: string }).notification}
@@ -144,30 +148,18 @@ export function InvoiceListPage() {
               </tr>
             </thead>
             <tbody>
-              {query.data.data.map((invoice) => {
-                const open = () => void navigate(`/invoices/${invoice.invoiceId}`);
-                return (
-                  <tr
-                    key={invoice.invoiceId}
-                    tabIndex={0}
-                    aria-label={`Open invoice ${invoice.invoiceNumber}`}
-                    onClick={open}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        open();
-                      }
-                    }}
-                  >
-                    <td>{invoice.invoiceNumber}</td>
-                    <td>{invoice.customerName}</td>
-                    <td>{invoice.invoiceDate}</td>
-                    <td>{invoice.dueDate}</td>
-                    <td>{invoice.totalAmount}</td>
-                    <td>{invoice.status}</td>
-                  </tr>
-                );
-              })}
+              {query.data.data.map((invoice) => (
+                <tr key={invoice.invoiceId}>
+                  <td>
+                    <Link to={`/invoices/${invoice.invoiceId}`}>{invoice.invoiceNumber}</Link>
+                  </td>
+                  <td>{invoice.customerName}</td>
+                  <td>{invoice.invoiceDate}</td>
+                  <td>{invoice.dueDate}</td>
+                  <td>{invoice.totalAmount}</td>
+                  <td>{invoice.status}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

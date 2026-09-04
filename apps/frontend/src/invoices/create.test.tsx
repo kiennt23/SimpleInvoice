@@ -88,7 +88,7 @@ describe("invoice creation", () => {
       taxPercent: "10",
       discount: "0",
     });
-    expect(screen.getByText("Invoice created successfully.")).toBeVisible();
+    expect(await screen.findByText("Invoice created successfully.")).toBeVisible();
   });
 
   it("shows field feedback and makes no request for invalid input", async () => {

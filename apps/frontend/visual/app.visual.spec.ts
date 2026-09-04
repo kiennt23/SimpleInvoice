@@ -68,8 +68,33 @@ test("invoice list page", async ({ page }) => {
   await authenticate(page);
   await page.route(/\/invoices\?/, (route) => route.fulfill({ json: listResponse }));
   await page.goto("/invoices");
+  await expect(page.getByRole("link", { name: "Create invoice" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "INV-2026-01001" })).toHaveAttribute(
+    "href",
+    "/invoices/20000000-0000-4000-8000-000000000001",
+  );
   await expect(page.getByText("INV-2026-01001")).toBeVisible();
   await expect(page).toHaveScreenshot("invoice-list.png", { fullPage: true });
+});
+
+test("expired session redirects to login", async ({ page }) => {
+  await authenticate(page);
+  let requestCount = 0;
+  await page.route(/\/invoices\?/, (route) => {
+    requestCount += 1;
+    if (requestCount === 1) return route.fulfill({ json: listResponse });
+    return route.fulfill({
+      status: 401,
+      json: { statusCode: 401, error: "Unauthorized", message: "Authentication required" },
+    });
+  });
+  await page.goto("/invoices");
+  await expect(page.getByRole("link", { name: "INV-2026-01001" })).toBeVisible();
+
+  await page.getByRole("combobox", { name: "Status" }).selectOption("Draft");
+
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
 });
 
 test("invoice detail page", async ({ page }) => {
