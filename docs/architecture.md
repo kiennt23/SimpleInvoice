@@ -46,7 +46,7 @@ Within each module:
 
 ### The Overdue Query Boundary
 
-Derived `Overdue` status and list predicates need parameterized SQL that Prisma's query builder cannot express cleanly. Exactly one concrete persistence boundary wraps that SQL. It must apply effective-status predicates before counting, before sorting, and before pagination, and the count query and rows query must share equivalent predicates with the deterministic tie-breaker required by LIST-009 and DATA-008. Behavior is normative in [requirements](requirements.md); this document only fixes the boundary's shape: one place, parameterized SQL, no generic repository.
+Derived `Overdue` status and list predicates need parameterized SQL that Prisma's query builder cannot express cleanly. Exactly one concrete persistence boundary wraps that SQL. It must apply effective-status predicates before counting, before sorting, and before pagination, and the count query and rows query must share equivalent predicates with the deterministic tie-breaker required by LIST-009 and DATA-008. Both queries run in one repeatable-read transaction so rows and totals share a snapshot. B-tree indexes support each allowed sort plus its identifier tie-breaker; PostgreSQL trigram indexes support case-insensitive substring search. Behavior is normative in [requirements](requirements.md); this document only fixes the boundary's shape: one place, parameterized SQL, no generic repository.
 
 ### Snapshot and Cardinality Rules
 
@@ -73,7 +73,9 @@ State ownership:
 - **TanStack Query** owns all server state: caching, refetching, and loading/error representation.
 - **Form state** stays local to React Hook Form and never enters a global store.
 
-The fetch client uses relative URLs so requests stay same-origin and ride the proxy. Zod schemas parse API responses and form input as client-side feedback only; the backend validation described in [requirements](requirements.md) remains authoritative. When a protected-route request receives an HTTP 401 response in the API-007 shape, the router redirects to login.
+One protected route layout performs the session bootstrap once when the authenticated area is entered; list search-parameter changes do not revalidate `/auth/me`. Keyword input is debounced before it updates the URL, and TanStack Query's abort signal cancels superseded list requests.
+
+The fetch client uses relative URLs so requests stay same-origin and ride the proxy. Runtime guards parse API responses and Zod parses form input as client-side feedback only; the backend validation described in [requirements](requirements.md) remains authoritative. When a protected-route request receives an HTTP 401 response in the API-007 shape, the router redirects to login.
 
 ## Data and Persistence
 

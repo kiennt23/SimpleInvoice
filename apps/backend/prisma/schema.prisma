@@ -50,6 +50,9 @@ model Invoice {
   items                InvoiceItem[]
 
   @@unique([invoiceNumber])
+  @@index([invoiceDate, invoiceId])
+  @@index([dueDate, invoiceId])
+  @@index([totalAmount, invoiceId])
 }
 
 model InvoiceItem {

@@ -163,6 +163,15 @@ describe("GET /invoices (e2e, PostgreSQL)", () => {
       .expect(200);
     expect(beyond.body).toEqual({ data: [], paging: { page: 99, pageSize: 2, total: 5 } });
   });
+
+  it("treats SQL wildcard characters in search input as literal text", async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/invoices?keyword=${encodeURIComponent(`${prefix}%_`)}`)
+      .set("Cookie", cookie)
+      .expect(200);
+
+    expect(response.body).toEqual({ data: [], paging: { page: 1, pageSize: 10, total: 0 } });
+  });
 });
 
 function invoice(

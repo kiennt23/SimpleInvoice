@@ -45,7 +45,10 @@ export function parseListResponse(value: unknown): ListResponse {
   return { data: value["data"], paging: value["paging"] };
 }
 
-export async function fetchInvoiceList(params: URLSearchParams): Promise<ListResponse> {
-  const value = await apiRequest<unknown>(`/invoices?${params.toString()}`);
+export async function fetchInvoiceList(
+  params: URLSearchParams,
+  signal: AbortSignal,
+): Promise<ListResponse> {
+  const value = await apiRequest<unknown>(`/invoices?${params.toString()}`, { signal });
   return parseListResponse(value);
 }
