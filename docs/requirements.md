@@ -236,15 +236,21 @@ These status codes and bodies are normative for every endpoint below. Validation
 
 `DELIVERY-003` and `DELIVERY-004` require environment-only configuration and a complete `.env.example`. The required keys:
 
-| Source | Required configuration |
-| --- | --- |
-| `DELIVERY-002` | Per-service `Dockerfile` paths (frontend, backend, database) |
-| `DELIVERY-002` | Host port mapping for each Compose service |
-| `ADR 0002` | Application origin used for Origin-header validation (e.g. `APP_ORIGIN`) |
-| `ADR 0004` | `BUSINESS_TIME_ZONE` (validated IANA name, default `UTC`) |
-| `AUTH-003` | JWT expiry configuration |
-| `AUTH-00*` | JWT signing secret (env-only, never committed) |
-| Persistence | `DATABASE_URL` connection string |
+| Key | Required | Purpose / default |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string used by the API, migrations, tests, and seed |
+| `JWT_SECRET` | Yes | JWT signing secret; no application default |
+| `JWT_EXPIRES_IN_SECONDS` | No | Positive integer JWT/cookie lifetime; defaults to `3600` |
+| `BUSINESS_TIME_ZONE` | No | Validated IANA business timezone; defaults to `UTC` |
+| `APP_ORIGIN` | No | Exact allowed Origin for authenticated unsafe requests; set for browser deployments |
+| `PORT` | No | Backend listen port; defaults to `3000` |
+| `SEED_REVIEWER_EMAIL` | No | Seeded reviewer email |
+| `SEED_REVIEWER_PASSWORD` | No | Seeded reviewer password |
+| `POSTGRES_USER` | Compose only | PostgreSQL initialization user |
+| `POSTGRES_PASSWORD` | Compose only | PostgreSQL initialization password |
+| `POSTGRES_DB` | Compose only | PostgreSQL initialization database |
+
+Per-service Dockerfile paths and host port mappings are delivery configuration in `compose.yaml`, not environment keys. The root [`.env.example`](../.env.example) lists all environment keys above with safe local values.
 
 ## Testing Requirements
 

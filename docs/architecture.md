@@ -1,6 +1,6 @@
 # SimpleInvoice Architecture
 
-Status: approved target architecture. Application scaffolding has not started and no part of this architecture has been verified at runtime. See the [Requirements Specification](requirements.md) for normative product, API, validation, money, and date behavior, and the [Development Workflow](development-workflow.md) for test and migration practice.
+Status: implemented architecture. See the [Requirements Specification](requirements.md) for normative product, API, validation, money, and date behavior, the [Development Workflow](development-workflow.md) for test and migration practice, and the [root README](../README.md) for verified setup commands and ports.
 
 ## System Topology
 
@@ -96,3 +96,4 @@ The API issues the JWT as an `HttpOnly`, `SameSite=Lax` cookie on the same origi
 - [ADR 0003](adr/0003-use-exact-decimal-money.md): exact decimal money
 - [ADR 0004](adr/0004-use-business-date-semantics.md): business date semantics
 - [SOP: Adding a Currency](sops/adding-a-currency.md)
+- [README: setup, ports, seeds, and limitations](../README.md)

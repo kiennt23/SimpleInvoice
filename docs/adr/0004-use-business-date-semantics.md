@@ -15,7 +15,7 @@ Derived `Overdue` status compares a due date against "today" (STATUS-005), and l
 - **Business timezone**: an `IANA` timezone name is validated from the `BUSINESS_TIME_ZONE` environment variable at startup, defaulting to `UTC`. An invalid value fails fast rather than falling back silently.
 - **One clock per request**: the current business date is computed once per request from an injectable clock/date provider, using `BUSINESS_TIME_ZONE`, and passed explicitly into every effective-status derivation and effective-Overdue query, including the parameterized SQL boundary from [ADR 0001](0001-use-postgresql-and-prisma-for-persistence.md). Code never calls host or database `CURRENT_DATE`/`now()` for these decisions.
 - **Purity**: status-rule functions take the business date as an argument, keeping them deterministic and unit-testable under TDD.
-- Which date field `fromDate`/`toDate` filters remains an open product decision.
+- `fromDate` and `toDate` filter `invoiceDate`, inclusively, as defined in the requirements.
 
 ## Considered Alternatives
 
