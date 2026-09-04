@@ -27,17 +27,13 @@ describe("parseAppConfig", () => {
   it("throws a named error when DATABASE_URL is missing", () => {
     const env = { ...VALID_ENV };
     delete env["DATABASE_URL"];
-    expect(() => parseAppConfig(env)).toThrow(
-      "Config validation error: DATABASE_URL is required",
-    );
+    expect(() => parseAppConfig(env)).toThrow("Config validation error: DATABASE_URL is required");
   });
 
   it("throws a named error when JWT_SECRET is missing", () => {
     const env = { ...VALID_ENV };
     delete env["JWT_SECRET"];
-    expect(() => parseAppConfig(env)).toThrow(
-      "Config validation error: JWT_SECRET is required",
-    );
+    expect(() => parseAppConfig(env)).toThrow("Config validation error: JWT_SECRET is required");
   });
 
   it("throws a named error when BUSINESS_TIME_ZONE is not an IANA zone", () => {
@@ -65,7 +61,7 @@ describe("parseAppConfig", () => {
 
   it("throws a named error when APP_ORIGIN is not an origin", () => {
     expect(() => parseAppConfig({ ...VALID_ENV, APP_ORIGIN: "http://not-an-origin/path" })).toThrow(
-      "Config validation error: APP_ORIGIN must be a valid origin (e.g. http://localhost:5173) (got \"http://not-an-origin/path\")",
+      'Config validation error: APP_ORIGIN must be a valid origin (e.g. http://localhost:5173) (got "http://not-an-origin/path")',
     );
   });
 });

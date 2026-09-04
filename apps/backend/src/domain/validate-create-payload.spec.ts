@@ -70,10 +70,7 @@ describe("validateCreatePayload - happy path", () => {
   });
 
   it("accepts dueDate equal to invoiceDate (on-or-after rule)", () => {
-    const result = validateCreatePayload(
-      validPayload({ dueDate: "2026-01-10" }),
-      BUSINESS_DATE,
-    );
+    const result = validateCreatePayload(validPayload({ dueDate: "2026-01-10" }), BUSINESS_DATE);
 
     expect(result.ok).toBe(true);
   });
@@ -119,9 +116,7 @@ describe("validateCreatePayload - customer and invoice fields", () => {
   });
 
   it("rejects a dueDate earlier than invoiceDate (CREATE-004)", () => {
-    const errors = errorsOf(
-      validPayload({ invoiceDate: "2026-01-10", dueDate: "2026-01-09" }),
-    );
+    const errors = errorsOf(validPayload({ invoiceDate: "2026-01-10", dueDate: "2026-01-09" }));
 
     expect(errors.some((e) => e.includes("dueDate"))).toBe(true);
   });
@@ -135,9 +130,7 @@ describe("validateCreatePayload - customer and invoice fields", () => {
 
 describe("validateCreatePayload - item rules", () => {
   it("rejects quantity 0 with a named error (CREATE-005)", () => {
-    const errors = errorsOf(
-      validPayload({ item: { name: "Item", quantity: 0, rate: d("1.00") } }),
-    );
+    const errors = errorsOf(validPayload({ item: { name: "Item", quantity: 0, rate: d("1.00") } }));
 
     expect(errors.some((e) => e.includes("item.quantity"))).toBe(true);
   });
@@ -159,9 +152,7 @@ describe("validateCreatePayload - item rules", () => {
   });
 
   it("rejects rate 0 (CREATE-006: positive)", () => {
-    const errors = errorsOf(
-      validPayload({ item: { name: "Item", quantity: 1, rate: d("0") } }),
-    );
+    const errors = errorsOf(validPayload({ item: { name: "Item", quantity: 1, rate: d("0") } }));
 
     expect(errors.some((e) => e.includes("item.rate"))).toBe(true);
   });
@@ -175,9 +166,7 @@ describe("validateCreatePayload - item rules", () => {
   });
 
   it("rejects an empty item name", () => {
-    const errors = errorsOf(
-      validPayload({ item: { name: "", quantity: 1, rate: d("1.00") } }),
-    );
+    const errors = errorsOf(validPayload({ item: { name: "", quantity: 1, rate: d("1.00") } }));
 
     expect(errors.some((e) => e.includes("item.name"))).toBe(true);
   });
@@ -231,7 +220,10 @@ describe("validateCreatePayload - discount bound (CREATE-008)", () => {
   it("rejects a discount greater than subtotal plus tax", () => {
     // subtotal 200 + tax 20 = 220; discount 220.01 exceeds it.
     const errors = errorsOf(
-      validPayload({ item: { name: "Item", quantity: 2, rate: d("100.00") }, discount: d("220.01") }),
+      validPayload({
+        item: { name: "Item", quantity: 2, rate: d("100.00") },
+        discount: d("220.01"),
+      }),
     );
 
     expect(errors.some((e) => e.includes("discount"))).toBe(true);
@@ -239,7 +231,10 @@ describe("validateCreatePayload - discount bound (CREATE-008)", () => {
 
   it("accepts a discount exactly equal to subtotal plus tax (total 0)", () => {
     const result = validateCreatePayload(
-      validPayload({ item: { name: "Item", quantity: 2, rate: d("100.00") }, discount: d("220.00") }),
+      validPayload({
+        item: { name: "Item", quantity: 2, rate: d("100.00") },
+        discount: d("220.00"),
+      }),
       BUSINESS_DATE,
     );
 

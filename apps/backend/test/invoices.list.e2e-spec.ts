@@ -61,15 +61,7 @@ describe("GET /invoices (e2e, PostgreSQL)", () => {
           "40.00",
           "Needle Customer",
         ),
-        invoice(
-          fixedIds[4],
-          "FUTURE-DRAFT",
-          "Draft",
-          "2026-06-30",
-          "2026-07-01",
-          "50.00",
-          "Delta",
-        ),
+        invoice(fixedIds[4], "FUTURE-DRAFT", "Draft", "2026-06-30", "2026-07-01", "50.00", "Delta"),
       ],
     });
     const login = await request(app.getHttpServer())

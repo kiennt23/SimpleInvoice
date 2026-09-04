@@ -97,7 +97,11 @@ describe("calculateTotals", () => {
   });
 
   it("keeps exact precision far beyond Number.MAX_SAFE_INTEGER", () => {
-    const totals = calculateTotals({ quantity: 1000000, rate: d("10000000000000"), taxPercent: d("10") });
+    const totals = calculateTotals({
+      quantity: 1000000,
+      rate: d("10000000000000"),
+      taxPercent: d("10"),
+    });
 
     expect(totals.subtotal.toFixed(2)).toBe("10000000000000000000.00");
   });

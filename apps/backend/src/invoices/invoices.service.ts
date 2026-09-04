@@ -1,4 +1,10 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import type { InvoiceDetail, InvoiceListRow, ListResponse } from "@simpleinvoice/contracts";
 import { APP_CONFIG, type AppConfig } from "../config/app-config";
 import { businessDate } from "../domain/business-date";
@@ -97,7 +103,11 @@ export class InvoicesService {
             totalPaid: new Prisma.Decimal("0.00"),
             balanceAmount: totals.balanceAmount,
             items: {
-              create: { name: input.item.name, quantity: input.item.quantity, rate: input.item.rate },
+              create: {
+                name: input.item.name,
+                quantity: input.item.quantity,
+                rate: input.item.rate,
+              },
             },
           },
           include: { items: true },
@@ -116,11 +126,23 @@ export class InvoicesService {
 
   private toDetail(
     invoice: {
-      invoiceId: string; invoiceNumber: string; customerName: string; customerEmail: string;
-      customerMobileNumber: string | null; customerAddress: string | null; invoiceDate: Date;
-      dueDate: Date; currency: string; status: string; taxPercent: Prisma.Decimal;
-      subtotal: Prisma.Decimal; taxAmount: Prisma.Decimal; discount: Prisma.Decimal;
-      totalAmount: Prisma.Decimal; totalPaid: Prisma.Decimal; balanceAmount: Prisma.Decimal;
+      invoiceId: string;
+      invoiceNumber: string;
+      customerName: string;
+      customerEmail: string;
+      customerMobileNumber: string | null;
+      customerAddress: string | null;
+      invoiceDate: Date;
+      dueDate: Date;
+      currency: string;
+      status: string;
+      taxPercent: Prisma.Decimal;
+      subtotal: Prisma.Decimal;
+      taxAmount: Prisma.Decimal;
+      discount: Prisma.Decimal;
+      totalAmount: Prisma.Decimal;
+      totalPaid: Prisma.Decimal;
+      balanceAmount: Prisma.Decimal;
     },
     item: { name: string; quantity: number; rate: Prisma.Decimal },
     requestBusinessDate: string,
@@ -129,7 +151,9 @@ export class InvoicesService {
     const customer = {
       fullname: invoice.customerName,
       email: invoice.customerEmail,
-      ...(invoice.customerMobileNumber === null ? {} : { mobileNumber: invoice.customerMobileNumber }),
+      ...(invoice.customerMobileNumber === null
+        ? {}
+        : { mobileNumber: invoice.customerMobileNumber }),
       ...(invoice.customerAddress === null ? {} : { address: invoice.customerAddress }),
     };
     return {
@@ -139,11 +163,19 @@ export class InvoicesService {
       invoiceDate: date(invoice.invoiceDate),
       dueDate: date(invoice.dueDate),
       totalAmount: invoice.totalAmount.toFixed(2) as InvoiceDetail["totalAmount"],
-      status: effectiveStatus(invoice.status as "Draft" | "Pending" | "Paid", date(invoice.dueDate), requestBusinessDate),
+      status: effectiveStatus(
+        invoice.status as "Draft" | "Pending" | "Paid",
+        date(invoice.dueDate),
+        requestBusinessDate,
+      ),
       currency: invoice.currency as InvoiceDetail["currency"],
       taxPercent: invoice.taxPercent.toFixed(2) as InvoiceDetail["taxPercent"],
       customer,
-      item: { name: item.name, quantity: item.quantity, rate: item.rate.toFixed(4) as InvoiceDetail["item"]["rate"] },
+      item: {
+        name: item.name,
+        quantity: item.quantity,
+        rate: item.rate.toFixed(4) as InvoiceDetail["item"]["rate"],
+      },
       subtotal: invoice.subtotal.toFixed(2) as InvoiceDetail["subtotal"],
       taxAmount: invoice.taxAmount.toFixed(2) as InvoiceDetail["taxAmount"],
       discount: invoice.discount.toFixed(2) as InvoiceDetail["discount"],
@@ -153,8 +185,12 @@ export class InvoicesService {
   }
 
   private isUniqueInvoiceNumberError(error: unknown): boolean {
-    if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "P2002") return false;
-    const meta = "meta" in error && typeof error.meta === "object" && error.meta !== null ? error.meta : undefined;
+    if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "P2002")
+      return false;
+    const meta =
+      "meta" in error && typeof error.meta === "object" && error.meta !== null
+        ? error.meta
+        : undefined;
     const target = meta !== undefined && "target" in meta ? meta.target : undefined;
     return target === undefined || String(target).includes("invoiceNumber");
   }

@@ -53,17 +53,20 @@ describe("invoice creation", () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it.each([375, 1280])("keeps every form group and action available at a %ipx viewport", (width) => {
-    setViewport(width);
-    renderCreate();
+  it.each([375, 1280])(
+    "keeps every form group and action available at a %ipx viewport",
+    (width) => {
+      setViewport(width);
+      renderCreate();
 
-    for (const group of ["Customer", "Invoice", "Item", "Adjustments"]) {
-      expect(screen.getByRole("group", { name: group })).toBeVisible();
-    }
-    expect(screen.getByRole("button", { name: "Cancel" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Create invoice" })).toBeVisible();
-    expect(window.matchMedia("(min-width: 48rem)").matches).toBe(width >= 768);
-  });
+      for (const group of ["Customer", "Invoice", "Item", "Adjustments"]) {
+        expect(screen.getByRole("group", { name: group })).toBeVisible();
+      }
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeVisible();
+      expect(screen.getByRole("button", { name: "Create invoice" })).toBeVisible();
+      expect(window.matchMedia("(min-width: 48rem)").matches).toBe(width >= 768);
+    },
+  );
 
   it("submits the exact writable payload once and redirects with success feedback", async () => {
     fetchMock.mockResolvedValueOnce(

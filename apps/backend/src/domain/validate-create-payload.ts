@@ -75,7 +75,9 @@ function parseField(
   maxScale: number,
 ): Prisma.Decimal | undefined {
   if (!isDecimalString(value)) {
-    errors.push(`${field} must be a canonical decimal string (no exponent, whitespace, or extra symbols)`);
+    errors.push(
+      `${field} must be a canonical decimal string (no exponent, whitespace, or extra symbols)`,
+    );
     return undefined;
   }
   const parsed = new Prisma.Decimal(value);

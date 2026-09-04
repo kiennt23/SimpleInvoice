@@ -70,7 +70,11 @@ export class ConfigEnv {
   DATABASE_URL!: string;
 
   @IsDefined({ message: requiredMessage })
-  @envRule("isNonEmptyString", (value) => `JWT_SECRET must be a non-empty string (got "${value}")`, (value) => value.trim().length > 0)
+  @envRule(
+    "isNonEmptyString",
+    (value) => `JWT_SECRET must be a non-empty string (got "${value}")`,
+    (value) => value.trim().length > 0,
+  )
   JWT_SECRET!: string;
 
   @envRule(

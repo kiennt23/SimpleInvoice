@@ -57,17 +57,20 @@ describe("invoice list", () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it.each([375, 1280])("exposes filters and a scroll-safe table at a %ipx viewport", async (width) => {
-    setViewport(width);
-    fetchMock.mockResolvedValueOnce(response([row]));
-    renderList();
+  it.each([375, 1280])(
+    "exposes filters and a scroll-safe table at a %ipx viewport",
+    async (width) => {
+      setViewport(width);
+      fetchMock.mockResolvedValueOnce(response([row]));
+      renderList();
 
-    expect(await screen.findByRole("table")).toBeVisible();
-    expect(screen.getByRole("table").parentElement).toHaveClass("invoice-table-wrap");
-    expect(screen.getByRole("textbox", { name: /Search/ })).toBeVisible();
-    expect(screen.getByRole("navigation", { name: "Invoice pages" })).toBeVisible();
-    expect(window.matchMedia("(min-width: 48rem)").matches).toBe(width >= 768);
-  });
+      expect(await screen.findByRole("table")).toBeVisible();
+      expect(screen.getByRole("table").parentElement).toHaveClass("invoice-table-wrap");
+      expect(screen.getByRole("textbox", { name: /Search/ })).toBeVisible();
+      expect(screen.getByRole("navigation", { name: "Invoice pages" })).toBeVisible();
+      expect(window.matchMedia("(min-width: 48rem)").matches).toBe(width >= 768);
+    },
+  );
 
   it("renders server rows and sends URL filters, paging, and sorting", async () => {
     fetchMock.mockResolvedValueOnce(response([row]));

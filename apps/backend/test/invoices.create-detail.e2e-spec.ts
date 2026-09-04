@@ -97,7 +97,9 @@ describe("invoice create and detail (e2e, PostgreSQL)", () => {
       totalAmount: "30.12",
       status: "Draft",
     });
-    const stored = await prisma.invoice.findUnique({ where: { invoiceId: created.body.invoiceId } });
+    const stored = await prisma.invoice.findUnique({
+      where: { invoiceId: created.body.invoiceId },
+    });
     expect(stored?.status).toBe("Draft");
   });
 
@@ -108,12 +110,20 @@ describe("invoice create and detail (e2e, PostgreSQL)", () => {
       .set("Origin", "http://localhost:8080")
       .send(validPayload(`${prefix}VALID`))
       .expect(409);
-    expect(duplicate.body).toEqual({ statusCode: 409, error: "Conflict", message: "Invoice number already exists" });
+    expect(duplicate.body).toEqual({
+      statusCode: 409,
+      error: "Conflict",
+      message: "Invoice number already exists",
+    });
     const missing = await request(app.getHttpServer())
       .get("/invoices/00000000-0000-4000-8000-999999999999")
       .set("Cookie", cookie)
       .expect(404);
-    expect(missing.body).toEqual({ statusCode: 404, error: "Not Found", message: "Invoice not found" });
+    expect(missing.body).toEqual({
+      statusCode: 404,
+      error: "Not Found",
+      message: "Invoice not found",
+    });
   });
 
   it("rejects an earlier due date and an array/two-item payload", async () => {
@@ -127,7 +137,11 @@ describe("invoice create and detail (e2e, PostgreSQL)", () => {
         .set("Origin", "http://localhost:8080")
         .send(payload)
         .expect(400);
-      expect(result.body).toEqual({ statusCode: 400, error: "Bad Request", message: expect.any(Array) });
+      expect(result.body).toEqual({
+        statusCode: 400,
+        error: "Bad Request",
+        message: expect.any(Array),
+      });
     }
   });
 

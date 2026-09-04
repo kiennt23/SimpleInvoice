@@ -83,6 +83,8 @@ jobs:
         run: npm ci
       - name: Build contracts
         run: npm run build -w packages/contracts
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w apps/backend
       - name: Lint
         run: npm run lint -w apps/backend
       - name: Format check
