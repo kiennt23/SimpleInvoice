@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
 import { InvoiceListPage } from "./InvoiceListPage";
@@ -96,6 +96,26 @@ describe("invoice list", () => {
       fromDate: "2026-01-01",
       toDate: "2026-12-31",
     });
+  });
+
+  it("debounces keyword changes and passes a cancellation signal", async () => {
+    fetchMock.mockImplementation(() => Promise.resolve(response([row])));
+    renderList();
+    await screen.findByRole("table");
+
+    const search = screen.getByRole("textbox", { name: /Search/ });
+    fireEvent.change(search, { target: { value: "A" } });
+    fireEvent.change(search, { target: { value: "Ad" } });
+    fireEvent.change(search, { target: { value: "Ada" } });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(
+      new URL(String(fetchMock.mock.calls[1]?.[0]), "http://example.test").searchParams.get(
+        "keyword",
+      ),
+    ).toBe("Ada");
+    expect(fetchMock.mock.calls[1]?.[1]?.signal).toBeInstanceOf(AbortSignal);
   });
 
   it("uses a native link for invoice navigation", async () => {

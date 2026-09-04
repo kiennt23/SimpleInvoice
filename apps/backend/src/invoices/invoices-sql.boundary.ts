@@ -42,26 +42,31 @@ export class InvoicesSqlBoundary {
     };
     const direction = input.ordering === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`;
     const effectiveStatus = Prisma.sql`CASE WHEN i.status <> 'Paid' AND i."dueDate" < ${input.businessDate}::date THEN 'Overdue' ELSE i.status END`;
-    const rows = await this.prisma.$queryRaw<SqlRow[]>(Prisma.sql`
-      SELECT i."invoiceId", i."invoiceNumber", i."customerName", i."invoiceDate",
-             i."dueDate", i."totalAmount", ${effectiveStatus} AS status
-      FROM "Invoice" i
-      ${where}
-      ORDER BY ${sortColumn[input.sortBy]} ${direction}, i."invoiceId" ${direction}
-      LIMIT ${input.pageSize} OFFSET ${(input.page - 1) * input.pageSize}
-    `);
-    const counts = await this.prisma.$queryRaw<CountRow[]>(Prisma.sql`
-      SELECT COUNT(*)::bigint AS total FROM "Invoice" i ${where}
-    `);
-    return { rows, total: Number(counts[0]?.total ?? 0n) };
+    return this.prisma.$transaction(
+      async (transaction) => {
+        const rows = await transaction.$queryRaw<SqlRow[]>(Prisma.sql`
+          SELECT i."invoiceId", i."invoiceNumber", i."customerName", i."invoiceDate",
+                 i."dueDate", i."totalAmount", ${effectiveStatus} AS status
+          FROM "Invoice" i
+          ${where}
+          ORDER BY ${sortColumn[input.sortBy]} ${direction}, i."invoiceId" ${direction}
+          LIMIT ${input.pageSize} OFFSET ${(input.page - 1) * input.pageSize}
+        `);
+        const counts = await transaction.$queryRaw<CountRow[]>(Prisma.sql`
+          SELECT COUNT(*)::bigint AS total FROM "Invoice" i ${where}
+        `);
+        return { rows, total: Number(counts[0]?.total ?? 0n) };
+      },
+      { isolationLevel: "RepeatableRead" },
+    );
   }
 
   private where(input: InvoiceListSqlInput): Prisma.Sql {
     const predicates: Prisma.Sql[] = [];
     if (input.keyword !== undefined) {
-      const pattern = `%${input.keyword}%`;
+      const pattern = `%${input.keyword.replace(/[\\%_]/g, "\\$&")}%`;
       predicates.push(
-        Prisma.sql`(i."invoiceNumber" ILIKE ${pattern} OR i."customerName" ILIKE ${pattern})`,
+        Prisma.sql`(i."invoiceNumber" ILIKE ${pattern} ESCAPE '\\' OR i."customerName" ILIKE ${pattern} ESCAPE '\\')`,
       );
     }
     if (input.fromDate !== undefined)

@@ -1,11 +1,34 @@
 import type { InvoiceStatus, SortField, SortOrder } from "@simpleinvoice/contracts";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 import { fetchInvoiceList } from "./api";
 
 const statuses: readonly InvoiceStatus[] = ["Draft", "Pending", "Paid", "Overdue"];
 const defaults = { page: "1", pageSize: "10", sortBy: "invoiceDate", ordering: "DESC" } as const;
+
+function KeywordSearch({
+  initialValue,
+  onSearch,
+}: {
+  initialValue: string;
+  onSearch: (value: string) => void;
+}) {
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
+    if (value === initialValue) return;
+    const timeout = window.setTimeout(() => onSearch(value), 300);
+    return () => window.clearTimeout(timeout);
+  }, [initialValue, onSearch, value]);
+
+  return (
+    <label>
+      Search <input value={value} onChange={(event) => setValue(event.target.value)} />
+    </label>
+  );
+}
 
 function requestParams(searchParams: URLSearchParams) {
   const result = new URLSearchParams();
@@ -28,21 +51,35 @@ function requestParams(searchParams: URLSearchParams) {
 export function InvoiceListPage() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const urlKeyword = searchParams.get("keyword") ?? "";
   const params = requestParams(searchParams);
   const queryString = params.toString();
   const query = useQuery({
     queryKey: ["invoices", queryString],
-    queryFn: () => fetchInvoiceList(params),
+    queryFn: ({ signal }) => fetchInvoiceList(params, signal),
   });
 
-  function update(values: Record<string, string>) {
-    const next = new URLSearchParams(searchParams);
-    for (const [key, value] of Object.entries(values)) {
-      if (value) next.set(key, value);
-      else next.delete(key);
-    }
-    setSearchParams(next);
-  }
+  const update = useCallback(
+    (values: Record<string, string>, replace = false) => {
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          for (const [key, value] of Object.entries(values)) {
+            if (value) next.set(key, value);
+            else next.delete(key);
+          }
+          return next;
+        },
+        { replace },
+      );
+    },
+    [setSearchParams],
+  );
+
+  const updateKeyword = useCallback(
+    (keyword: string) => update({ keyword, page: "1" }, true),
+    [update],
+  );
 
   const page = Number(params.get("page"));
   const pageSize = Number(params.get("pageSize"));
@@ -61,13 +98,7 @@ export function InvoiceListPage() {
         </p>
       )}
       <form className="invoice-filters" onSubmit={(event) => event.preventDefault()}>
-        <label>
-          Search{" "}
-          <input
-            value={searchParams.get("keyword") ?? ""}
-            onChange={(event) => update({ keyword: event.target.value, page: "1" })}
-          />
-        </label>
+        <KeywordSearch key={urlKeyword} initialValue={urlKeyword} onSearch={updateKeyword} />
         <label>
           Status{" "}
           <select

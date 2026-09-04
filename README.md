@@ -102,5 +102,7 @@ GitHub Actions runs the `contracts`, `frontend`, and `backend` jobs on pull requ
 - Customer details are immutable invoice snapshots; there is no customer-management feature.
 - `Overdue` is derived at read time and is never persisted.
 - Supported currencies are AUD, USD, and GBP.
+- The JWT is intentionally returned only in an `HttpOnly` cookie—not in the JSON body or browser storage—to reduce token exposure to client-side scripts; see [ADR 0002](docs/adr/0002-use-hardened-cookie-based-browser-authentication.md).
+- Monetary API fields intentionally use exact decimal strings rather than JSON numbers, avoiding binary floating-point loss; see [ADR 0003](docs/adr/0003-use-exact-decimal-money.md).
 - Deterministic browser visual regression tests cover key pages at mobile and desktop sizes; live-backend browser workflows are manually verified rather than automated in CI.
 - Hosted deployment and external submission are not included.

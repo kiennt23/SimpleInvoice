@@ -54,13 +54,14 @@ Status transitions, payment collection, customer management, and external third-
 
 - **LIST-001:** The invoice list must be the default authenticated screen.
 - **LIST-002:** Each row must show invoice number, customer, invoice date, due date, total, and effective status.
-- **LIST-003:** Search must support case-insensitive partial matching by invoice number or customer.
+- **LIST-003:** Search must support case-insensitive partial matching by invoice number or customer. User-entered `%`, `_`, and `\` characters are literal text, not SQL wildcard syntax.
 - **LIST-004:** Users must be able to filter by effective status.
 - **LIST-005:** Users must be able to sort by `invoiceDate`, `dueDate`, or `totalAmount` in ascending or descending order.
 - **LIST-006:** Pagination must be performed by the server with a configurable page size.
 - **LIST-007:** Date filtering must support `fromDate` and `toDate`.
 - **LIST-008:** Filtering by derived `Overdue` status must occur before pagination totals and page contents are calculated.
 - **LIST-009:** Equal sort keys must produce a stable page order across requests.
+- **LIST-010:** Keyword input must be briefly debounced before updating the URL and fetching, and superseded list requests must be cancellable. Search-parameter changes must not revalidate an already established frontend session.
 
 ### List API
 
@@ -231,6 +232,7 @@ These status codes and bodies are normative for every endpoint below. Validation
 - **DATA-006:** Seeds may persist only `Draft`, `Pending`, and `Paid`; past due dates should demonstrate derived `Overdue` behavior. No seed record may carry a persisted `Overdue` status.
 - **DATA-007:** Customer details are persisted as an immutable snapshot on the invoice, copied at creation time and never joined from a separate customer record at read time.
 - **DATA-008:** All list sorting appends a deterministic identifier tie-breaker so pagination remains stable for equal sort keys.
+- **DATA-009:** Invoice list rows and their matching total must be read from one consistent database snapshot. Supported sort paths and case-insensitive substring search must have appropriate database indexes.
 
 ### Environment Configuration Inventory
 

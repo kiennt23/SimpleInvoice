@@ -78,11 +78,14 @@ test("invoice list page", async ({ page }) => {
 });
 
 test("expired session redirects to login", async ({ page }) => {
-  await authenticate(page);
-  let requestCount = 0;
+  let authRequestCount = 0;
+  await page.route("**/auth/me", (route) => {
+    authRequestCount += 1;
+    return route.fulfill({ json: { user } });
+  });
   await page.route(/\/invoices\?/, (route) => {
-    requestCount += 1;
-    if (requestCount === 1) return route.fulfill({ json: listResponse });
+    const status = new URL(route.request().url()).searchParams.get("status");
+    if (status === null) return route.fulfill({ json: listResponse });
     return route.fulfill({
       status: 401,
       json: { statusCode: 401, error: "Unauthorized", message: "Authentication required" },
@@ -95,6 +98,7 @@ test("expired session redirects to login", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  expect(authRequestCount).toBe(1);
 });
 
 test("invoice detail page", async ({ page }) => {
