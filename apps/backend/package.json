@@ -11,6 +11,7 @@
     "build": "prisma generate && tsc -p tsconfig.build.json",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
+    "seed": "tsx prisma/seed.ts",
     "test": "jest --config jest.config.cjs",
     "test:e2e": "jest --config jest.e2e.config.cjs --runInBand",
     "lint": "eslint .",
