@@ -1,0 +1,324 @@
+:root {
+  --color-canvas: #f4f4f4;
+  --color-surface: #ffffff;
+  --color-text: #161616;
+  --color-text-muted: #525252;
+  --color-border: #c6c6c6;
+  --color-accent: #0f62fe;
+  --color-success: #198038;
+  --color-warning: #8e6a00;
+  --color-danger: #da1e28;
+  --font-sans: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --text-caption: 0.75rem;
+  --text-body: 1rem;
+  --text-heading: clamp(2rem, 6vw, 3rem);
+  --line-height-heading: 1.1;
+  --line-height-body: 1.5;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --measure-copy: 42rem;
+  --border-width: 0.0625rem;
+
+  color: var(--color-text);
+  background-color: var(--color-canvas);
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+.app-shell {
+  display: grid;
+  min-height: 100dvh;
+  padding: var(--space-6);
+  place-items: center;
+}
+
+.login-form {
+  display: grid;
+  width: min(100%, 28rem);
+  padding: var(--space-6);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.login-form h1 {
+  margin: 0 0 var(--space-6);
+}
+
+.login-form label {
+  margin-top: var(--space-3);
+  font-weight: var(--font-weight-medium);
+}
+
+.login-form input {
+  min-height: 2.75rem;
+  width: 100%;
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  font: inherit;
+}
+
+.login-form input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.login-form p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-danger);
+}
+
+.login-form button {
+  min-height: 2.75rem;
+  margin-top: var(--space-6);
+  border: 0;
+  background: var(--color-accent);
+  color: var(--color-surface);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
+.scaffold-marker {
+  width: min(100%, var(--measure-copy));
+  padding-inline-start: var(--space-4);
+  border-inline-start: var(--border-width) solid var(--color-accent);
+}
+
+.scaffold-marker__label {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-body);
+  text-transform: uppercase;
+}
+
+.scaffold-marker__title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-heading);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-heading);
+}
+
+.scaffold-marker__note {
+  margin: var(--space-4) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+}
+
+@media (min-width: 48rem) {
+  .app-shell {
+    padding: var(--space-12);
+  }
+
+  .scaffold-marker {
+    padding-inline-start: var(--space-6);
+  }
+}
+
+.invoice-list {
+  padding: var(--space-6);
+}
+.invoice-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-block: var(--space-6);
+}
+.invoice-filters label {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+.invoice-filters input,
+.invoice-filters select {
+  max-width: 100%;
+}
+.invoice-table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+}
+th,
+td {
+  padding: var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-border);
+  text-align: left;
+  white-space: nowrap;
+}
+tbody tr {
+  cursor: pointer;
+}
+tbody tr:focus,
+tbody tr:hover {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.invoice-detail {
+  width: min(100%, 64rem);
+  margin-inline: auto;
+  padding: var(--space-6);
+}
+.invoice-detail header,
+.invoice-detail dl div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.invoice-detail section {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-surface);
+}
+.invoice-detail dt {
+  color: var(--color-text-muted);
+}
+.invoice-detail dd {
+  margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: end;
+}
+
+.invoice-create {
+  width: min(100%, 64rem);
+  margin-inline: auto;
+  padding: var(--space-6);
+}
+.invoice-create .eyebrow {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+}
+.invoice-create h1 {
+  margin-top: var(--space-2);
+}
+.invoice-create form,
+.invoice-create fieldset {
+  display: grid;
+  gap: var(--space-4);
+}
+.invoice-create fieldset {
+  min-width: 0;
+  margin: 0 0 var(--space-6);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+}
+.invoice-create legend {
+  padding-inline: var(--space-2);
+  font-weight: var(--font-weight-semibold);
+}
+.form-grid {
+  display: grid;
+  gap: var(--space-4);
+}
+.form-grid label {
+  display: grid;
+  gap: var(--space-1);
+}
+.form-grid input,
+.form-grid select {
+  min-height: 2.75rem;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+.form-grid input:focus,
+.form-grid select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.field-error,
+.form-alert {
+  color: var(--color-danger);
+}
+.field-error {
+  font-size: var(--text-caption);
+}
+.success-notification {
+  padding: var(--space-3);
+  border-inline-start: 4px solid var(--color-success);
+  background: var(--color-surface);
+  color: var(--color-success);
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+.form-actions button {
+  min-height: 2.75rem;
+  padding-inline: var(--space-4);
+}
+
+@media (max-width: 47.999rem) {
+  .invoice-list,
+  .invoice-detail,
+  .invoice-create {
+    padding: var(--space-4);
+  }
+
+  .invoice-filters label {
+    width: 100%;
+  }
+
+  .pagination,
+  .form-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 48rem) {
+  .invoice-create {
+    padding: var(--space-12);
+  }
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

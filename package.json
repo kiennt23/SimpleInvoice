@@ -1,0 +1,21 @@
+{
+  "name": "simpleinvoice",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": "^22.12"
+  },
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend",
+    "packages/contracts"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format:check": "npm run format:check --workspaces --if-present",
+    "seed": "npm run seed -w apps/backend"
+  }
+}

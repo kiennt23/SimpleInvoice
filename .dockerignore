@@ -1,0 +1,17 @@
+node_modules
+**/node_modules
+dist
+**/dist
+coverage
+.git
+.omo
+.codegraph
+.playwright-mcp
+.env
+.env.*
+!.env.example
+**/*.spec.ts
+**/*.test.ts
+docs
+*.md
+!packages/contracts/README.md

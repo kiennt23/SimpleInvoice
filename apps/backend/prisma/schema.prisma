@@ -1,0 +1,63 @@
+// SimpleInvoice persistence schema (ADR 0001: PostgreSQL + Prisma).
+// Column scales are fixed by docs/requirements.md DATA-003 and ADR 0003:
+// rate NUMERIC(19,4), taxPercent NUMERIC(5,2), all money amounts NUMERIC(19,2).
+// CHECK constraints (status values, date ordering, positive quantity/rate,
+// non-negative money) are not expressible in schema.prisma and live as named
+// CHECKs hand-added in prisma/migrations/<init>/migration.sql.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  fullname     String
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model Invoice {
+  invoiceId            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceNumber        String
+  // Immutable customer snapshot copied at creation time (DATA-007):
+  // customer.fullname -> customerName, customer.email -> customerEmail,
+  // customer.mobileNumber -> customerMobileNumber, customer.address -> customerAddress.
+  customerName         String
+  customerEmail        String
+  customerMobileNumber String?
+  customerAddress      String?
+  invoiceDate          DateTime @db.Date
+  dueDate              DateTime @db.Date
+  currency             String
+  // Validated by CHECK CK_Invoice_status ('Draft' | 'Pending' | 'Paid');
+  // 'Overdue' is only ever derived at read time (STATUS-001..003).
+  status               String
+  taxPercent           Decimal  @db.Decimal(5, 2)
+  subtotal             Decimal  @db.Decimal(19, 2)
+  taxAmount            Decimal  @db.Decimal(19, 2)
+  discount             Decimal  @db.Decimal(19, 2)
+  totalAmount          Decimal  @db.Decimal(19, 2)
+  totalPaid            Decimal  @db.Decimal(19, 2)
+  balanceAmount        Decimal  @db.Decimal(19, 2)
+  createdAt            DateTime @default(now()) @db.Timestamptz(6)
+  items                InvoiceItem[]
+
+  @@unique([invoiceNumber])
+}
+
+model InvoiceItem {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId String  @db.Uuid
+  name      String
+  quantity  Int
+  // The only place a rate exists; Invoice carries no rate column.
+  rate      Decimal @db.Decimal(19, 4)
+  invoice   Invoice @relation(fields: [invoiceId], references: [invoiceId])
+}

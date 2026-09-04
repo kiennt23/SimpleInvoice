@@ -1,0 +1,105 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  contracts:
+    name: contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build -w packages/contracts
+      - name: Lint
+        run: npm run lint -w packages/contracts
+      - name: Format check
+        run: npm run format:check -w packages/contracts
+      - name: Typecheck
+        run: npm run typecheck -w packages/contracts
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build contracts
+        run: npm run build -w packages/contracts
+      - name: Lint
+        run: npm run lint -w apps/frontend
+      - name: Format check
+        run: npm run format:check -w apps/frontend
+      - name: Typecheck
+        run: npm run typecheck -w apps/frontend
+      - name: Unit tests
+        run: npm run test:run -w apps/frontend
+      - name: Visual tests
+        run: npm run test:visual -w apps/frontend
+      - name: Build
+        run: npm run build -w apps/frontend
+
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://simpleinvoice:simpleinvoice@localhost:5432/simpleinvoice_test
+      JWT_SECRET: ci-only-not-a-secret
+      JWT_EXPIRES_IN_SECONDS: "3600"
+      BUSINESS_TIME_ZONE: UTC
+      APP_ORIGIN: http://localhost:3000
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: simpleinvoice
+          POSTGRES_PASSWORD: simpleinvoice
+          POSTGRES_DB: simpleinvoice_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U simpleinvoice"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build contracts
+        run: npm run build -w packages/contracts
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w apps/backend
+      - name: Lint
+        run: npm run lint -w apps/backend
+      - name: Format check
+        run: npm run format:check -w apps/backend
+      - name: Typecheck
+        run: npm run typecheck -w apps/backend
+      - name: Apply migrations
+        run: npm run prisma:deploy -w apps/backend
+      - name: Unit tests
+        run: npm run test -w apps/backend
+      - name: E2E tests
+        run: npm run test:e2e -w apps/backend
+      - name: Build
+        run: npm run build -w apps/backend

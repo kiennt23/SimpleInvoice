@@ -1,13 +1,12 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-09-03
+**Updated:** 2026-09-04
 **Repository:** `git@github.com:kiennt23/SimpleInvoice.git`
 **Default branch:** `main`
 
 ## OVERVIEW
 
-Greenfield workspace for the 101 Digital SimpleInvoice full-stack assessment.
-Requirements and development conventions are documented; no application has been scaffolded.
+Full-stack implementation of the 101 Digital SimpleInvoice assessment.
 
 ## SOURCE OF TRUTH
 
@@ -24,24 +23,18 @@ Requirements and development conventions are documented; no application has been
 ## CURRENT STRUCTURE
 
 ```text
-101_assessment/
-├── .gitignore                        # Excludes generated agent tooling state
-├── README.md                         # Repository entry point and planned-system overview
-├── AGENTS.md                         # Agent guidance for this workspace
-├── docs/
-│   ├── Assessment_Fullstack_v3.0.0.pdf # Product requirements and seed-data reference
-│   ├── requirements.md                 # Normative implementation requirements
-│   ├── architecture.md                 # Approved target architecture (not yet scaffolded)
-│   ├── adr/                            # Accepted architecture decision records 0001-0004
-│   ├── sops/                           # Repeatable procedures (adding a currency)
-│   └── development-workflow.md         # Git, review, testing, and maintenance rules
+├── apps/frontend/       # React/Vite SPA and nginx image
+├── apps/backend/        # NestJS API, Prisma schema/migrations, seed
+├── packages/contracts/  # Framework-free shared contracts
+├── docker/              # PostgreSQL image
+├── docs/                # Requirements, architecture, ADRs, workflow, SOPs
+├── compose.yaml
+└── package.json
 ```
 
-There are no source files, package manifests, tests, Docker files, CI workflows, or executable entry points yet.
+## SYSTEM
 
-## TARGET SYSTEM
-
-The project is an npm-workspaces monorepo: frontend, backend, and shared code live in one repository with npm as the package manager. The target is a responsive React TypeScript frontend, a modular NestJS TypeScript API, and PostgreSQL as the selected database. See `docs/architecture.md` for topology, modules, and boundaries and `docs/requirements.md` for the complete product, API, validation, data, testing, and delivery specification. No application code exists yet.
+This npm-workspaces monorepo contains a responsive React TypeScript frontend, a modular NestJS TypeScript API, shared contracts, and PostgreSQL. See `docs/architecture.md` for boundaries and `docs/requirements.md` for normative behavior.
 
 ## DOCUMENTATION MAINTENANCE
 
@@ -55,8 +48,24 @@ The project is an npm-workspaces monorepo: frontend, backend, and shared code li
 
 ## COMMANDS
 
-No project commands exist yet. Two interfaces are required by the specification and must be provided after scaffolding: `npm run seed` (seed data) and `docker compose up` (start frontend, backend, and database from zero). Do not claim either works until its manifest and configuration exist and have been executed successfully.
+```sh
+npm ci
+npm run lint
+npm run format:check
+npm run typecheck
+npm run test -w apps/backend
+npm run test:e2e -w apps/backend       # requires DATABASE_URL and migrated PostgreSQL
+npm run test:run -w apps/frontend
+npm run test:visual -w apps/frontend   # requires Playwright Chromium
+npm run build
+npm run prisma:deploy -w apps/backend  # requires DATABASE_URL
+npm run seed                           # requires DATABASE_URL
+docker compose up -d --build
+docker compose down -v
+```
+
+For local backend commands, export the repository-root `.env` first: `set -a; . ./.env; set +a`.
 
 ## OPEN DECISIONS
 
-See [Open Product Decisions](docs/requirements.md#open-product-decisions) for unresolved product and API contracts, [Open Technical Decisions](docs/development-workflow.md#open-technical-decisions) for unresolved tooling choices, and [Agreed Baseline](docs/development-workflow.md#agreed-baseline) for settled conventions. Do not begin affected implementation until its listed decisions are resolved, and do not duplicate either register here.
+The product and technical decision registers currently have zero open items. Record future changes in their owning document and do not duplicate them here.

@@ -1,6 +1,6 @@
 # SimpleInvoice Architecture
 
-Status: approved target architecture. Application scaffolding has not started and no part of this architecture has been verified at runtime. See the [Requirements Specification](requirements.md) for normative product, API, validation, money, and date behavior, and the [Development Workflow](development-workflow.md) for test and migration practice.
+Status: implemented architecture. See the [Requirements Specification](requirements.md) for normative product, API, validation, money, and date behavior, the [Development Workflow](development-workflow.md) for test and migration practice, and the [root README](../README.md) for verified setup commands and ports.
 
 ## System Topology
 
@@ -10,7 +10,7 @@ The system is an npm-workspaces monorepo with three workspaces in one repository
 - `apps/backend`: a modular NestJS REST API.
 - `packages/contracts`: a narrow, framework-free shared TypeScript package.
 
-The frontend and backend are the deployable application units; PostgreSQL is the third Docker Compose service. Each service has its own Dockerfile as required by DELIVERY-002. In development and in the final Compose setup, the browser talks to the frontend, and API calls use a same-origin relative path that the frontend server proxies to the backend. The browser never addresses the backend directly; same-origin delivery supports and simplifies the selected cookie-based authentication design in [ADR 0002](adr/0002-use-hardened-cookie-based-browser-authentication.md). Exact ports are an open delivery decision.
+The frontend and backend are the deployable application units; PostgreSQL is the third Docker Compose service. Each service has its own Dockerfile as required by DELIVERY-002. In development and in the final Compose setup, the browser talks to the frontend, and API calls use a same-origin relative path that the frontend server proxies to the backend. The browser never addresses the backend directly; same-origin delivery supports and simplifies the selected cookie-based authentication design in [ADR 0002](adr/0002-use-hardened-cookie-based-browser-authentication.md). Exposed ports (frontend 8080, backend 3000, PostgreSQL 5432) are documented in the delivery wave.
 
 ## Workspace Layout
 
@@ -59,7 +59,7 @@ Derived `Overdue` status and list predicates need parameterized SQL that Prisma'
 
 - Transport TypeScript types shared by frontend and backend.
 - Finite enums, unions, and constants (statuses, sort fields, query names).
-- The supported-currency registry (code and minor units only), which is the canonical target the [currency SOP](sops/adding-a-currency.md) extends.
+- The supported-currency registry carrying `{code, minorUnits, symbol}`, where the symbol is display-only and never persisted, which is the canonical target the [currency SOP](sops/adding-a-currency.md) extends.
 
 It must not contain: Prisma or generated database types, Nest decorators, React code, business services or calculations, or generic utilities. Prisma types stay backend-private; the backend maps database rows to contract types at its edge.
 
@@ -73,7 +73,7 @@ State ownership:
 - **TanStack Query** owns all server state: caching, refetching, and loading/error representation.
 - **Form state** stays local to React Hook Form and never enters a global store.
 
-The fetch client uses relative URLs so requests stay same-origin and ride the proxy. Zod schemas parse API responses and form input as client-side feedback only; the backend validation described in [requirements](requirements.md) remains authoritative. When a protected-route request receives the eventual unauthenticated contract's response, the router redirects to login.
+The fetch client uses relative URLs so requests stay same-origin and ride the proxy. Zod schemas parse API responses and form input as client-side feedback only; the backend validation described in [requirements](requirements.md) remains authoritative. When a protected-route request receives an HTTP 401 response in the API-007 shape, the router redirects to login.
 
 ## Data and Persistence
 
@@ -96,3 +96,4 @@ The API issues the JWT as an `HttpOnly`, `SameSite=Lax` cookie on the same origi
 - [ADR 0003](adr/0003-use-exact-decimal-money.md): exact decimal money
 - [ADR 0004](adr/0004-use-business-date-semantics.md): business date semantics
 - [SOP: Adding a Currency](sops/adding-a-currency.md)
+- [README: setup, ports, seeds, and limitations](../README.md)

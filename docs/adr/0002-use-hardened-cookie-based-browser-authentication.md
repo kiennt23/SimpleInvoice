@@ -15,8 +15,8 @@ The API issues the JWT to the browser as a cookie, and the browser never touches
 - `HttpOnly` and `SameSite=Lax` are always set. `HttpOnly` removes the token from JavaScript reachability, closing the XSS token-theft path that `localStorage` leaves open.
 - `Secure` is required outside controlled local HTTP development, so production and hosted previews never send the cookie in cleartext.
 - The cookie lifetime aligns with the configurable JWT expiry (AUTH-003), so the cookie never outlives the token it carries.
-- Login sets the cookie; `GET /auth/me` restores the authenticated identity; when a protected-route request receives the eventual unauthenticated contract's response, the user is redirected to login. The unauthenticated status and body remain an open decision in the [requirements register](../requirements.md).
-- Because `SameSite=Lax` alone does not cover all cross-site unsafe-request scenarios, every authenticated unsafe request (POST, PATCH, PUT, DELETE) must carry an `Origin` header that matches the configured application origin. A missing or mismatched Origin is rejected. The exact rejection status and body remain an open decision in the [requirements register](../requirements.md).
+- Login sets the cookie; `GET /auth/me` restores the authenticated identity; an HTTP 401 from a protected route redirects the user to login. Unauthenticated errors use the API-007 shape defined in the [requirements](../requirements.md).
+- Because `SameSite=Lax` alone does not cover all cross-site unsafe-request scenarios, every authenticated unsafe request (POST, PATCH, PUT, DELETE) must carry an `Origin` header that matches the configured application origin. A missing or mismatched Origin is rejected with HTTP 403 in the API-007 shape.
 - Browser code never reads, stores, or transmits the token itself. There is no Authorization header path.
 
 The normative rules live in the Requirements Specification's Authentication section. This ADR records only the rationale.
